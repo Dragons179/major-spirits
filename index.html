@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MLB スカウト & 選手名鑑 & 対戦リーグ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Teko:wght@700&family=M+PLUS+Rounded+1c:wght@700;900&family=Noto+Sans+JP:wght@500;700;900&family=Dancing+Script:wght@700&display=swap');
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      background-color: #0b0f19;
+    }
+    .font-num {
+      font-family: 'Teko', sans-serif;
+      letter-spacing: 0.05em;
+    }
+    .font-pop {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+    }
+    .font-sign {
+      font-family: 'Dancing Script', cursive;
+    }
+
+    .prospi-btn-gold {
+      background: linear-gradient(180deg, #fff3a1 0%, #f59e0b 45%, #b45309 85%, #78350f 100%);
+      box-shadow: 0 4px 0 #451a03, 0 6px 12px rgba(0,0,0,0.6);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+    .prospi-btn-gold:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #451a03;
+    }
+
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .card-inner.flipped {
+      transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 0.75rem;
+    }
+    .card-front {
+      transform: rotateY(180deg);
+    }
+
+    /* レアリティ別カード装飾 */
+    .border-JAPAN {
+      border: 3px solid #ef4444;
+      background: linear-gradient(135deg, #450a0a 0%, #1e1b4b 60%, #030712 100%);
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.4);
+    }
+    .border-ANNIV {
+      border: 3px solid #38bdf8;
+      background: linear-gradient(135deg, #082f49 0%, #172554 40%, #2e1065 100%);
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.8), inset 0 0 10px rgba(251, 191, 36, 0.6);
+    }
+    .border-TH {
+      border: 3px solid #fbbf24;
+      background: linear-gradient(135deg, #381a02 0%, #150901 60%, #050300 100%);
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.7), inset 0 0 10px rgba(255, 230, 0, 0.4);
+    }
+    .border-UR {
+      border: 2.5px solid #ff007f;
+      background: linear-gradient(135deg, #2a0823, #0a0e27);
+      box-shadow: 0 0 15px rgba(255, 0, 128, 0.6), inset 0 0 10px rgba(0, 242, 254, 0.3);
+    }
+    .border-SSR {
+      border: 2.5px solid #facc15;
+      background: linear-gradient(135deg, #2b1f04, #130f02);
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+    }
+    .border-SR {
+      border: 2px solid #a855f7;
+      background: linear-gradient(135deg, #1b0f2a, #0e0717);
+      box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+    }
+    .border-R {
+      border: 1.5px solid #38bdf8;
+      background: linear-gradient(135deg, #081d38, #050d18);
+    }
+    .border-N {
+      border: 1.5px solid #64748b;
+      background: linear-gradient(135deg, #1e293b, #0d131f);
+    }
+
+    .holo-JAPAN::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0.65rem;
+      background: linear-gradient(115deg, transparent 15%, rgba(255,255,255,0.4) 35%, rgba(239,68,68,0.6) 50%, rgba(251,191,36,0.5) 65%, transparent 85%);
+      background-size: 200% 200%;
+      animation: holo 1.8s infinite linear;
+      pointer-events: none;
+    }
+    .holo-ANNIV::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0.65rem;
+      background: linear-gradient(115deg, transparent 15%, rgba(56, 189, 248, 0.4) 35%, rgba(251, 191, 36, 0.6) 50%, rgba(236, 72, 153, 0.4) 65%, transparent 85%);
+      background-size: 200% 200%;
+      animation: holo 2.0s infinite linear;
+      pointer-events: none;
+    }
+    .holo-TH::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0.65rem;
+      background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.45) 40%, rgba(251,191,36,0.5) 60%, transparent 80%);
+      background-size: 200% 200%;
+      animation: holo 2.0s infinite linear;
+      pointer-events: none;
+    }
+    .holo-UR::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0.65rem;
+      background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.4) 40%, rgba(255,0,128,0.3) 60%, transparent 80%);
+      background-size: 200% 200%;
+      animation: holo 2.2s infinite linear;
+      pointer-events: none;
+    }
+    @keyframes holo {
+      0% { background-position: -200% -200%; }
+      100% { background-position: 200% 200%; }
+    }
+
+    .gold-signature {
+      position: absolute;
+      right: 4px;
+      bottom: 42px;
+      transform: rotate(-12deg);
+      font-size: 24px;
+      font-weight: 700;
+      color: #fde047;
+      text-shadow: 0 0 5px rgba(234, 179, 8, 0.8), 1px 1px 1px #854d0e;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .badge-new {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: linear-gradient(135deg, #ff0055, #ff5500);
+      color: white;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      border: 1.5px solid white;
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.8);
+      z-index: 30;
+      animation: bounceNew 0.8s infinite alternate ease-in-out;
+    }
+    @keyframes bounceNew {
+      from { transform: scale(0.95); }
+      to { transform: scale(1.1); }
+    }
+
+    .slide-in-right {
+      animation: slideInRight 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(25px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .modal-hidden {
+      display: none !important;
+      pointer-events: none !important;
+    }
+    .modal-visible {
+      display: flex !important;
+      pointer-events: auto !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen flex flex-col custom-scrollbar overflow-x-hidden pb-20">
+
+  <!-- TOPヘッダー -->
+  <header class="sticky top-0 z-40 bg-gradient-to-b from-stone-900 via-stone-900 to-black border-b-2 border-amber-600/60 px-3 py-1.5 shadow-xl flex items-center justify-between text-xs">
+    <div class="flex items-center gap-2">
+      <div id="user-avatar-slot" class="w-8 h-8 rounded-full overflow-hidden bg-stone-800 border border-amber-400 flex items-center justify-center font-black text-white text-xs shadow">
+        ⚾
+      </div>
+      <div>
+        <div class="font-bold tracking-tight text-amber-400 flex items-center gap-1 leading-none text-sm">
+          <span id="user-display-name">監督</span>
+          <span id="header-subtitle" class="text-[10px] text-stone-300 font-normal">| 通常セレクション</span>
+        </div>
+        <div class="text-[10px] text-stone-400 font-mono mt-0.5">
+          所持選手 <span id="header-player-count" class="text-white font-bold">0</span>/300
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <div class="flex items-center bg-stone-950/90 border border-amber-500/50 rounded-full px-2.5 py-0.5 shadow-inner">
+        <span class="text-amber-400 mr-1 animate-pulse text-sm">⚡</span>
+        <span id="header-energy" class="font-num text-sm font-bold text-amber-300">1,000</span>
+      </div>
+      <button onclick="openShopModal()" class="bg-gradient-to-r from-amber-500 to-yellow-500 text-stone-950 font-black text-[11px] px-2 py-1 rounded-md shadow active:scale-95">
+        購入
+      </button>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-4xl w-full mx-auto p-3 flex flex-col justify-start">
+
+    <!-- === [画面1] スカウト画面 === -->
+    <section id="view-scout" class="space-y-3">
+      <!-- ガチャ切り替えタブ -->
+      <div class="grid grid-cols-4 gap-1 bg-stone-900/90 p-1 rounded-xl border border-stone-800 text-xs">
+        <button id="btn-mode-normal" onclick="switchScoutMode('NORMAL')" class="py-1.5 rounded-lg bg-amber-500 text-stone-950 font-black flex items-center justify-center gap-0.5 transition">
+          <span>⚾</span> 通常
+        </button>
+        <button id="btn-mode-th" onclick="switchScoutMode('TH')" class="py-1.5 rounded-lg bg-stone-800 text-stone-400 font-bold hover:text-white flex items-center justify-center gap-0.5 transition">
+          <span>🏆</span> TH
+        </button>
+        <button id="btn-mode-anniv" onclick="switchScoutMode('ANNIV')" class="py-1.5 rounded-lg bg-stone-800 text-cyan-400 font-bold hover:text-cyan-300 flex items-center justify-center gap-0.5 transition border border-cyan-500/30">
+          <span>✨</span> アニバ
+        </button>
+        <button id="btn-mode-japan" onclick="switchScoutMode('JAPAN')" class="py-1.5 rounded-lg bg-stone-800 text-rose-400 font-bold hover:text-rose-300 flex items-center justify-center gap-0.5 transition border border-rose-500/30">
+          <span>🇯🇵</span> 挑戦者
+        </button>
+      </div>
+
+      <!-- 看板バナー -->
+      <div id="prospi-banner" class="relative overflow-hidden rounded-xl border-2 border-amber-500/80 bg-gradient-to-br from-stone-900 via-stone-950 to-black p-3.5 shadow-2xl">
+        <div id="banner-bg-glow" class="absolute -right-8 -top-8 w-60 h-60 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+          <div class="flex items-center justify-between border-b border-stone-800 pb-1.5 mb-2">
+            <div class="flex items-center gap-1.5">
+              <span id="banner-badge-team" class="bg-blue-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded">LAD</span>
+              <span id="banner-mode-title" class="text-[11px] font-bold text-amber-400">4球団混合プレミアムセレクション開催中！</span>
+            </div>
+            <button onclick="rotateBannerHero()" class="text-[10px] text-amber-300 bg-stone-800 px-2 py-0.5 rounded border border-stone-700 hover:bg-stone-700">
+              選手切替 ↺
+            </button>
+          </div>
+
+          <div id="banner-slide-content" class="flex flex-col sm:flex-row items-center gap-4">
+            <div class="relative flex items-center justify-center shrink-0">
+              <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-stone-800 border-2 border-amber-400/80 shadow-lg relative flex items-center justify-center">
+                <img id="banner-player-img" src="" alt="Pickup" class="w-full h-full object-cover object-top">
+                <div id="banner-rarity-pill" class="absolute top-1 left-1 bg-gradient-to-r from-pink-600 to-rose-600 text-white text-[10px] font-black px-1.5 rounded shadow">
+                  UR
+                </div>
+              </div>
+            </div>
+
+            <div class="flex-1 w-full space-y-1.5">
+              <div class="flex items-baseline justify-between">
+                <div>
+                  <span id="banner-player-pos" class="text-[11px] text-stone-300 font-bold bg-stone-800 px-1.5 py-0.5 rounded">先発</span>
+                  <span id="banner-player-name" class="text-xl sm:text-2xl font-black text-white tracking-wide ml-1.5">選手名</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] text-stone-400">スピリッツ</span>
+                  <span id="banner-player-spirits" class="font-num text-2xl font-bold text-amber-400 leading-none ml-1">4500</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-1.5 text-center font-bold text-xs bg-stone-900/90 border border-stone-800 rounded p-1.5">
+                <div class="bg-stone-950/80 rounded py-0.5 border border-stone-800">
+                  <div class="text-[9px] text-stone-400" id="stat-label-1">球速 / パワー</div>
+                  <div class="text-amber-300 font-num text-sm leading-none" id="stat-val-1">-</div>
+                </div>
+                <div class="bg-stone-950/80 rounded py-0.5 border border-stone-800">
+                  <div class="text-[9px] text-stone-400" id="stat-label-2">制球 / ミート</div>
+                  <div class="text-amber-300 font-num text-sm leading-none" id="stat-val-2">-</div>
+                </div>
+                <div class="bg-stone-950/80 rounded py-0.5 border border-stone-800">
+                  <div class="text-[9px] text-stone-400" id="stat-label-3">スタミナ / 走力</div>
+                  <div class="text-amber-300 font-num text-sm leading-none" id="stat-val-3">-</div>
+                </div>
+              </div>
+
+              <div class="bg-stone-950/60 border border-stone-800/80 rounded px-2 py-1 text-[11px] flex items-center justify-between">
+                <span id="banner-feature-badge" class="text-amber-400 font-bold shrink-0 mr-2">特殊能力</span>
+                <span id="banner-player-feature" class="text-stone-300 truncate text-right">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- スカウト案内 / 天井カウンター -->
+      <div id="scout-info-bar" class="bg-stone-900/80 border border-amber-900/40 rounded-lg px-3 py-1.5 flex items-center justify-between text-xs">
+        <span id="scout-info-text" class="text-stone-300 font-medium flex items-center gap-1.5 truncate">
+          <span class="text-amber-400">⚾</span> スカウト開催中
+        </span>
+        <button onclick="openProbModal()" class="text-[11px] bg-stone-800 hover:bg-stone-700 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded shrink-0">
+          提供割合
+        </button>
+      </div>
+
+      <!-- ガチャボタン群 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+        <button onclick="pullGacha(1)" class="bg-gradient-to-b from-stone-800 to-stone-900 hover:from-stone-700 hover:to-stone-800 border-2 border-stone-600 rounded-xl p-3 flex items-center justify-between active:scale-95 transition shadow-lg">
+          <div class="text-left">
+            <div class="text-xs font-bold text-stone-300">1回スカウト</div>
+            <div class="text-[10px] text-stone-500">選手を1枚獲得</div>
+          </div>
+          <div class="flex items-center gap-1.5 bg-black/60 border border-stone-700 rounded-lg px-3 py-1">
+            <span class="text-amber-400 text-sm">⚡</span>
+            <span class="font-num text-xl font-bold text-amber-300">25</span>
+            <span class="text-[10px] text-stone-400">個</span>
+          </div>
+        </button>
+
+        <button onclick="pullGacha(10)" class="prospi-btn-gold rounded-xl p-3 flex items-center justify-between active:scale-95 transition relative overflow-hidden group">
+          <div class="text-left z-10">
+            <div id="btn-10-badge" class="text-xs font-black text-red-950 bg-amber-300/80 inline-block px-1 rounded text-[9px] mb-0.5">SR以上1人確定！</div>
+            <div class="text-base sm:text-lg font-black text-stone-950 font-pop leading-tight">10連スカウト</div>
+          </div>
+          <div class="flex items-center gap-1.5 bg-stone-950/80 border border-amber-300/60 rounded-lg px-3.5 py-1 z-10">
+            <span class="text-amber-400 text-base">⚡</span>
+            <span class="font-num text-2xl font-bold text-amber-300 leading-none">250</span>
+            <span class="text-xs text-amber-200">個</span>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- === [画面2] 図鑑・選手名鑑画面 === -->
+    <section id="view-zukan" class="hidden space-y-3">
+      <div class="flex items-center justify-between bg-stone-900/90 border border-stone-800 rounded-xl p-3">
+        <div>
+          <h2 class="text-sm font-bold text-white flex items-center gap-1.5">
+            <span>📖</span> 公式選手名鑑 図鑑
+          </h2>
+          <p class="text-[10px] text-stone-400">獲得したカードをタップで詳細ステータス閲覧</p>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] text-stone-400">コンプリート率</div>
+          <div id="zukan-percent" class="font-num text-2xl font-bold text-amber-400 leading-none">0.0%</div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-1 text-xs">
+        <button onclick="setZukanFilter('ALL')" class="zukan-filter-btn px-2.5 py-1 rounded bg-amber-500 text-stone-950 font-bold" data-f="ALL">全選手</button>
+        <button onclick="setZukanFilter('JAPAN')" class="zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-rose-300" data-f="JAPAN">🇯🇵 挑戦者</button>
+        <button onclick="setZukanFilter('ANNIV')" class="zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-cyan-300" data-f="ANNIV">✨ アニバ</button>
+        <button onclick="setZukanFilter('TH')" class="zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-stone-300" data-f="TH">🏆 TH</button>
+        <button onclick="setZukanFilter('LAD')" class="zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-stone-300" data-f="LAD">ドジャース</button>
+        <button onclick="setZukanFilter('NYY')" class="zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-stone-300" data-f="NYY">ヤンキース</button>
+        <button onclick="setZukanFilter('SD')" class="zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-stone-300" data-f="SD">パドレス</button>
+        <button onclick="setZukanFilter('SF')" class="zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-stone-300" data-f="SF">ジャイアンツ</button>
+        <button onclick="setZukanFilter('OWNED')" class="zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-stone-300 ml-auto" data-f="OWNED">所持のみ</button>
+      </div>
+
+      <div id="zukan-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2"></div>
+    </section>
+
+    <!-- === [画面3] オーダー編成 ＆ CPUランキング対戦画面 === -->
+    <section id="view-battle" class="hidden space-y-3">
+      <!-- チーム総合力ヘッダー -->
+      <div class="bg-gradient-to-r from-stone-900 via-stone-950 to-blue-950 border border-blue-500/50 rounded-xl p-3 flex items-center justify-between">
+        <div>
+          <div class="text-[10px] text-stone-400">チーム総合力 (野手9人 + 投手3人)</div>
+          <div class="flex items-baseline gap-2">
+            <span id="order-total-power" class="font-num text-3xl font-black text-amber-400">0</span>
+            <span class="text-xs text-stone-300 font-bold">PT</span>
+            <span class="text-[10px] text-rose-400 font-bold">※イベントカードは+1ボーナス！</span>
+          </div>
+        </div>
+        <div class="flex gap-1.5">
+          <button onclick="autoSetBestOrder()" class="bg-gradient-to-r from-amber-500 to-yellow-500 text-stone-950 font-black text-xs px-3 py-1.5 rounded-lg shadow active:scale-95">
+            おまかせ最強
+          </button>
+        </div>
+      </div>
+
+      <!-- 打順・投手陣リスト -->
+      <div class="bg-stone-900/90 border border-stone-800 rounded-xl p-3 space-y-2">
+        <h3 class="text-xs font-bold text-amber-400 flex items-center gap-1">
+          <span>📋</span> スタメンオーダー (タップで変更)
+        </h3>
+        <div id="order-slots-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <!-- 1〜9番打者 ＋ 先発・中継・抑えスロット -->
+        </div>
+      </div>
+
+      <!-- CPU対戦＆ランキングセクション -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- CPU対戦マッチング -->
+        <div class="bg-stone-900/90 border border-stone-800 rounded-xl p-3 space-y-2">
+          <h3 class="text-xs font-bold text-white flex items-center gap-1">
+            <span>⚔️</span> CPUマッチング対戦
+          </h3>
+          <p class="text-[10px] text-stone-400">勝利してランキングポイント(RP)を獲得！</p>
+          <div class="space-y-1.5 pt-1">
+            <button onclick="playMatch('ROOKIE')" class="w-full p-2 bg-stone-800 hover:bg-stone-700 rounded-lg flex items-center justify-between border border-stone-700">
+              <div class="text-left">
+                <div class="text-xs font-bold text-stone-200">ビギナーズ (初級)</div>
+                <div class="text-[10px] text-stone-400">目安総合力: 100〜120 PT</div>
+              </div>
+              <span class="text-xs text-amber-400 font-bold font-num">+30 RP</span>
+            </button>
+            <button onclick="playMatch('PRO')" class="w-full p-2 bg-stone-800 hover:bg-stone-700 rounded-lg flex items-center justify-between border border-stone-700">
+              <div class="text-left">
+                <div class="text-xs font-bold text-blue-300">オールスターズ (中級)</div>
+                <div class="text-[10px] text-stone-400">目安総合力: 130〜150 PT</div>
+              </div>
+              <span class="text-xs text-amber-400 font-bold font-num">+70 RP</span>
+            </button>
+            <button onclick="playMatch('MASTER')" class="w-full p-2 bg-stone-800 hover:bg-stone-700 rounded-lg flex items-center justify-between border border-stone-700">
+              <div class="text-left">
+                <div class="text-xs font-bold text-purple-300">レジェンズ (上級)</div>
+                <div class="text-[10px] text-stone-400">目安総合力: 160〜180 PT</div>
+              </div>
+              <span class="text-xs text-amber-400 font-bold font-num">+150 RP</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ランキングボード -->
+        <div class="bg-stone-900/90 border border-stone-800 rounded-xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-amber-400 flex items-center gap-1">
+              <span>🏆</span> リーグランキング
+            </h3>
+            <span class="text-[10px] text-stone-400">あなた: <strong id="user-rp-display" class="text-white font-num text-sm">0</strong> RP</span>
+          </div>
+          <div id="ranking-list" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar text-xs">
+            <!-- ランキング表が挿入されます -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- === [画面4] 選手当てクイズ === -->
+    <section id="view-quiz" class="hidden space-y-3">
+      <div class="bg-gradient-to-r from-stone-900 to-slate-900 border border-cyan-500/40 rounded-xl p-3 flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-white flex items-center gap-1.5">
+            <span class="text-cyan-400">🎯</span> MLB 選手名当てクイズ
+          </h2>
+          <p class="text-[10px] text-stone-400">正しい写真の有名選手から出題！エナジーを稼ごう</p>
+        </div>
+        <div class="text-right flex items-center gap-3">
+          <div>
+            <div class="text-[9px] text-stone-400">連続正解</div>
+            <div id="quiz-streak" class="font-num text-xl font-bold text-cyan-400">0</div>
+          </div>
+          <div>
+            <div class="text-[9px] text-stone-400">通算正解</div>
+            <div id="quiz-total" class="font-num text-xl font-bold text-amber-400">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-stone-900/90 border border-stone-800 rounded-2xl p-4 shadow-xl flex flex-col items-center">
+        <div class="text-xs text-stone-300 mb-2 font-bold flex items-center gap-1">
+          <span>Q. このメジャーリーガーの名前は？</span>
+        </div>
+
+        <div class="w-36 h-36 rounded-2xl overflow-hidden bg-stone-950 border-2 border-cyan-400/80 shadow-2xl relative mb-4">
+          <img id="quiz-player-img" src="" alt="Quiz Player" class="w-full h-full object-cover object-top">
+          <div id="quiz-team-badge" class="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-black text-amber-400 font-num">
+            LAD
+          </div>
+        </div>
+
+        <div id="quiz-options-container" class="w-full max-w-sm space-y-2"></div>
+        <div id="quiz-feedback" class="mt-3 text-xs font-bold text-center h-5"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- フッターナビゲーション -->
+  <footer class="fixed bottom-0 inset-x-0 z-40 bg-stone-950/95 backdrop-blur border-t border-amber-600/40 flex items-center justify-around py-1.5 text-[10px] text-stone-400 shadow-2xl">
+    <button onclick="switchTab('scout')" id="footer-btn-scout" class="flex flex-col items-center gap-0.5 text-amber-400 font-bold">
+      <span class="text-base">⚾</span>
+      <span>スカウト</span>
+    </button>
+    <button onclick="switchTab('zukan')" id="footer-btn-zukan" class="flex flex-col items-center gap-0.5 hover:text-white">
+      <span class="text-base">📖</span>
+      <span>選手名鑑</span>
+    </button>
+    <button onclick="switchTab('battle')" id="footer-btn-battle" class="flex flex-col items-center gap-0.5 hover:text-white">
+      <span class="text-base">⚔️</span>
+      <span>試合</span>
+    </button>
+    <button onclick="switchTab('quiz')" id="footer-btn-quiz" class="flex flex-col items-center gap-0.5 hover:text-white">
+      <span class="text-base">🎯</span>
+      <span>クイズ</span>
+    </button>
+    <button onclick="openShopModal()" class="flex flex-col items-center gap-0.5 hover:text-white">
+      <span class="text-base">⚡</span>
+      <span>ショップ</span>
+    </button>
+  </footer>
+
+  <!-- ==================== モーダル群 ==================== -->
+
+  <!-- 初回プロフィール設定モーダル -->
+  <div id="profile-setup-modal" class="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 modal-hidden">
+    <div class="bg-stone-900 border-2 border-amber-500/80 rounded-2xl max-w-sm w-full p-4 text-center shadow-2xl space-y-3">
+      <h3 class="text-base font-black text-amber-400 font-pop">チーム設立 ＆ 監督登録</h3>
+      <p class="text-[11px] text-stone-300">あなたの監督名とアイコン選手を設定してください。</p>
+
+      <div class="text-left space-y-1">
+        <label class="text-[10px] text-stone-400 font-bold">監督・チーム名</label>
+        <input type="text" id="setup-username-input" class="w-full bg-stone-950 border border-stone-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400" placeholder="名前を入力 (例: 福岡ライオンズ)">
+      </div>
+
+      <div class="text-left space-y-1">
+        <label class="text-[10px] text-stone-400 font-bold">看板アイコン選手を選択</label>
+        <div id="setup-avatar-picker" class="grid grid-cols-4 gap-2 max-h-36 overflow-y-auto custom-scrollbar p-1 bg-stone-950 rounded-lg border border-stone-800">
+          <!-- 所持選手から選択 -->
+        </div>
+      </div>
+
+      <button onclick="saveUserProfile()" class="w-full prospi-btn-gold py-2.5 rounded-xl font-black text-stone-950 text-xs shadow active:scale-95">
+        決定してリーグ参戦！
+      </button>
+    </div>
+  </div>
+
+  <!-- スロット選手選択モーダル -->
+  <div id="slot-select-modal" class="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-3 modal-hidden">
+    <div class="max-w-md w-full bg-stone-900 border border-stone-700 rounded-2xl p-4 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-2 border-b border-stone-800">
+        <h3 id="slot-select-title" class="text-xs font-bold text-white">スロット選手を選択</h3>
+        <button onclick="closeSlotModal()" class="text-stone-400 text-base">✕</button>
+      </div>
+      <div id="slot-select-list" class="grid grid-cols-3 gap-2 overflow-y-auto py-3 custom-scrollbar flex-1"></div>
+    </div>
+  </div>
+
+  <!-- 試合結果モーダル -->
+  <div id="match-result-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 modal-hidden">
+    <div class="max-w-sm w-full bg-gradient-to-b from-stone-900 to-black border-2 border-amber-500 rounded-2xl p-5 text-center shadow-2xl space-y-3">
+      <div id="match-verdict" class="text-3xl font-black italic tracking-widest font-pop"></div>
+      <div class="grid grid-cols-2 gap-2 bg-stone-950 p-3 rounded-xl border border-stone-800">
+        <div>
+          <div class="text-[10px] text-stone-400">あなた</div>
+          <div id="match-user-score" class="font-num text-2xl font-bold text-amber-400">0</div>
+        </div>
+        <div>
+          <div class="text-[10px] text-stone-400" id="match-cpu-name">CPU</div>
+          <div id="match-cpu-score" class="font-num text-2xl font-bold text-rose-400">0</div>
+        </div>
+      </div>
+      <div id="match-rp-reward" class="text-xs font-bold text-cyan-300"></div>
+      <button onclick="closeMatchModal()" class="w-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-black py-2 rounded-xl text-xs">
+        確認
+      </button>
+    </div>
+  </div>
+
+  <!-- 既存モーダル (カットイン・めくり・ショップ・詳細など) -->
+  <div id="cutin-overlay" class="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center modal-hidden">
+    <div id="cutin-aura" class="w-64 h-64 rounded-full blur-2xl transition-all duration-700"></div>
+    <div id="cutin-text" class="text-3xl md:text-5xl font-black italic tracking-widest mt-6 drop-shadow-lg text-center px-4 font-pop"></div>
+    <div id="cutin-sub" class="text-xs font-bold tracking-wider text-stone-300 mt-2"></div>
+  </div>
+
+  <div id="flip-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col modal-hidden">
+    <div class="p-3 flex items-center justify-between border-b border-stone-800">
+      <div class="text-xs font-bold text-stone-300">
+        スカウト中 (<span id="flip-current-index" class="text-amber-400 font-num text-lg">1</span> / <span id="flip-total-count" class="font-num text-lg">10</span>)
+      </div>
+      <button onclick="skipAllFlips()" class="text-[11px] bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 px-3 py-1 rounded-full font-bold">
+        スキップ ⏩
+      </button>
+    </div>
+    <div class="flex-1 flex flex-col items-center justify-center p-3 relative" id="flip-stage">
+      <div id="card-stage-container" class="w-60 h-[22rem] perspective-1000 cursor-pointer" onclick="handleCardFlipClick()">
+        <div id="active-card-inner" class="card-inner">
+          <div id="active-card-back" class="card-back bg-gradient-to-br from-stone-900 via-stone-950 to-black border-2 border-amber-500/60 flex flex-col items-center justify-center p-4 shadow-2xl">
+            <div id="card-back-aura" class="w-28 h-28 rounded-full blur-xl bg-amber-500/20 absolute"></div>
+            <div id="card-back-team-logo" class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-700 via-stone-800 to-amber-700 border-2 border-white/60 flex items-center justify-center text-white text-xl font-black mb-2 z-10 shadow">
+              MLB
+            </div>
+            <div class="text-xs text-amber-400 font-bold tracking-widest uppercase z-10 font-pop">MLB SCOUT</div>
+            <div class="text-[11px] text-stone-400 animate-pulse mt-6 font-bold z-10">TAP TO OPEN</div>
+          </div>
+          <div id="active-card-front" class="card-front p-3 flex flex-col justify-between relative overflow-hidden"></div>
+        </div>
+      </div>
+      <div id="tap-guide" class="text-[11px] text-stone-400 mt-4 tracking-wider">タップして選手をオープン！</div>
+    </div>
+  </div>
+
+  <div id="summary-modal" class="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-3 modal-hidden">
+    <div class="max-w-3xl w-full bg-stone-900 border border-amber-600/60 rounded-2xl p-4 shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between pb-2 border-b border-stone-800">
+        <h3 class="text-sm font-bold text-white flex items-center gap-1.5"><span class="text-amber-400">✨</span> スカウト獲得結果</h3>
+        <button onclick="closeSummaryModal()" class="text-stone-400 hover:text-white text-lg">✕</button>
+      </div>
+      <div id="summary-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2 overflow-y-auto py-3 custom-scrollbar flex-1"></div>
+      <div class="pt-2 border-t border-stone-800 flex justify-end gap-2">
+        <button onclick="closeSummaryModal(); switchTab('zukan');" class="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold rounded-lg border border-stone-700">名鑑を見る</button>
+        <button onclick="closeSummaryModal(); pullGacha(10);" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black rounded-lg shadow">もう一度10連！ (⚡250)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shop-modal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 modal-hidden">
+    <div class="bg-stone-900 border border-amber-500/60 rounded-2xl max-w-sm w-full p-4 shadow-2xl relative">
+      <button onclick="closeShopModal()" class="absolute top-3 right-3 text-stone-400 hover:text-white text-base">✕</button>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xl text-amber-400">⚡</span>
+        <h3 class="text-sm font-bold text-white">エナジー購入 (シミュレーター)</h3>
+      </div>
+      <p class="text-[10px] text-stone-400 mb-3 leading-relaxed">※実際のお金は一切かかりません。ボタンを押すと無料でエナジーが即座にチャージされます。</p>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-stone-800 border border-stone-700">
+          <div class="flex items-center gap-2"><span class="text-base text-amber-400">⚡</span><div><div class="text-xs font-bold text-white">エナジー 100個</div><div class="text-[9px] text-stone-400">単発4回分</div></div></div>
+          <button onclick="simulatePurchase(100, '¥160')" class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-[11px] px-3 py-1 rounded">¥160 (無料)</button>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-stone-800 border border-stone-700">
+          <div class="flex items-center gap-2"><span class="text-base text-amber-400">⚡</span><div><div class="text-xs font-bold text-white">エナジー 550個</div><div class="text-[9px] text-stone-400">10連2回分+おまけ</div></div></div>
+          <button onclick="simulatePurchase(550, '¥800')" class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-[11px] px-3 py-1 rounded">¥800 (無料)</button>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-stone-800 border border-stone-700">
+          <div class="flex items-center gap-2"><span class="text-base text-amber-400">⚡</span><div><div class="text-xs font-bold text-white">エナジー 1,500個</div><div class="text-[9px] text-stone-400">10連6回分</div></div></div>
+          <button onclick="simulatePurchase(1500, '¥2,200')" class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-[11px] px-3 py-1 rounded">¥2,200 (無料)</button>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-gradient-to-r from-amber-950/60 to-stone-800 border border-amber-500/80">
+          <div class="flex items-center gap-2"><span class="text-base">👑</span><div><div class="text-xs font-black text-amber-300">エナジー 10,000個</div><div class="text-[9px] text-amber-400/80">超豪華パック (400連分)</div></div></div>
+          <button onclick="simulatePurchase(10000, '¥13,800')" class="bg-gradient-to-r from-amber-400 to-yellow-400 text-stone-950 font-black text-[11px] px-3 py-1 rounded shadow">¥13,800 (無料)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="detail-modal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 modal-hidden">
+    <div class="bg-stone-900 border border-amber-500/50 rounded-2xl max-w-xs w-full p-4 shadow-2xl relative text-center">
+      <button onclick="closeDetailModal()" class="absolute top-2.5 right-2.5 text-stone-400 hover:text-white text-base">✕</button>
+      <div id="detail-card-slot" class="w-44 h-60 mx-auto my-2"></div>
+      <div id="detail-stats" class="mt-3 text-xs text-stone-300 bg-stone-950 p-2.5 rounded-xl border border-stone-800 text-left space-y-1"></div>
+    </div>
+  </div>
+
+  <div id="prob-modal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 modal-hidden">
+    <div class="bg-stone-900 border border-stone-700 rounded-xl max-w-xs w-full p-4 text-xs">
+      <div class="flex justify-between items-center pb-2 border-b border-stone-800">
+        <span id="prob-modal-title" class="font-bold text-white">スカウト提供割合</span>
+        <button onclick="closeProbModal()" class="text-stone-400 hover:text-white text-base px-2">✕</button>
+      </div>
+      <div id="prob-modal-content" class="space-y-1.5 py-3"></div>
+      <p id="prob-modal-sub" class="text-[10px] text-stone-500 border-t border-stone-800 pt-2"></p>
+    </div>
+  </div>
+
+  <!-- ==================== JavaScript ロジック ==================== -->
+  <script>
+    function createSilhouetteSVG(num) {
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">' +
+        '<rect width="100" height="100" fill="#334155"/>' +
+        '<circle cx="50" cy="38" r="18" fill="rgba(255,255,255,0.2)"/>' +
+        '<path d="M22,82 C22,62 35,56 50,56 C65,56 78,62 78,82 Z" fill="rgba(255,255,255,0.2)"/>' +
+        '<text x="50" y="78" fill="#94a3b8" font-family="sans-serif" font-weight="900" font-size="20" text-anchor="middle">#' + num + '</text>' +
+        '</svg>';
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function handleImageError(imgEl, team, num) {
+      imgEl.onerror = null;
+      imgEl.src = createSilhouetteSVG(num);
+    }
+
+    // 選手マスターデータ (JAPAN 4名 + ANNIV 4名 + TH 11名 + 各球団)
+    var PLAYERS = [
+      // JAPAN限定
+      { id: 'jp_01', team: 'NPB', name: '今井 達也', num: 48, pos: '投手', type: '先発', rarity: 'JAPAN', imgUrl: 'IMG_f27e2edb-6604-4855-abf2-2c9cf37e276b.jpg', mlbId: '', jpTitle: '侍の剛腕エース', stats: '唸る超剛速球と切れ味抜群のスライダー' },
+      { id: 'jp_02', team: 'NPB', name: '青柳 晃洋', num: 17, pos: '投手', type: '先発', rarity: 'JAPAN', imgUrl: 'IMG_9fb5ff5b-1e14-46af-9dbb-c124105a533f.jpg', mlbId: '', jpTitle: '虎の変則クオータースロー', stats: '魔球シンカーで打者を翻弄する最多勝右腕' },
+      { id: 'jp_03', team: 'NPB', name: '伊藤 大海', num: 17, pos: '投手', type: '先発', rarity: 'JAPAN', imgUrl: 'IMG_a7fa4258-3cd4-4021-a3b0-f5c4a90db5Oe.jpg', mlbId: '', jpTitle: '北の本格派エース', stats: '多彩な球種と圧倒的な制球力を誇る道産子右腕' },
+      { id: 'jp_04', team: 'NPB', name: '平良 海馬', num: 61, pos: '投手', type: '先発/救援', rarity: 'JAPAN', imgUrl: 'IMG_6d7d8fae-f84f-4bf5-b6d7-53aOd02e9da6.jpg', mlbId: '', jpTitle: '剛腕リリーバー', stats: '160km/h迫る剛速球と鋭いカットボール' },
+
+      // ANNIV限定
+      { id: 'anniv_01', team: 'SD', name: 'フェルナンド・タティスJr.', num: 23, pos: '野手', type: '外野手', rarity: 'ANNIV', mlbId: '665487', signature: 'F. Tatis Jr.', annivTitle: "'26 S2 Anniversary", stats: '超人アスリート！特別アニバーサリー仕様' },
+      { id: 'anniv_02', team: 'LAD', name: '大谷 翔平', num: 17, pos: '投手', type: '先発/DH', rarity: 'ANNIV', mlbId: '660271', signature: 'Shohei Ohtani', annivTitle: "'26 S2 Anniversary", stats: 'MLB史上初の50-50達成！球界のスーパースター' },
+      { id: 'anniv_03', team: 'NYY', name: 'アーロン・ジャッジ', num: 99, pos: '野手', type: '外野手', rarity: 'ANNIV', mlbId: '592450', signature: 'Aaron Judge', annivTitle: "'26 S2 Anniversary", stats: 'ヤンキース第16代主将！怪力アーチスト' },
+      { id: 'anniv_04', team: 'SD', name: 'ダルビッシュ 有', num: 11, pos: '投手', type: '先発', rarity: 'ANNIV', mlbId: '506433', signature: 'Yu Darvish', annivTitle: "'26 S2 Anniversary", stats: '日米通算200勝！千両役者の変化球マスター' },
+
+      // TH限定
+      { id: 'th_01', team: 'HOU', name: 'ヨーダン・アルバレス', num: 44, pos: '野手', type: '指名打者', rarity: 'TH', mlbId: '670541', thTitle: 'ア・リーグ 首位打者', thStat: '.316', stats: '圧倒的な打撃センスを誇る最強スラッガー' },
+      { id: 'th_02', team: 'NYM', name: 'ピート・アロンソ', num: 20, pos: '野手', type: '一塁手', rarity: 'TH', mlbId: '624413', thTitle: 'ア・リーグ 本塁打/打点 二冠王', thStat: '43本 113打点', stats: '「ポーラーベア」圧倒的なパワーで量産' },
+      { id: 'th_03', team: 'STL', name: 'ソニー・グレイ', num: 54, pos: '投手', type: '先発', rarity: 'TH', mlbId: '543243', thTitle: 'ア・リーグ 最多勝', thStat: '18勝', stats: '切れ味鋭いスイーパーと抜群の勝負強さ' },
+      { id: 'th_04', team: 'NYY', name: 'キャム・シュリットラー', num: 31, pos: '投手', type: '先発', rarity: 'TH', mlbId: '', thTitle: 'ア・リーグ 最優秀防御率', thStat: '1.95', stats: '精密な制球力で打者を翻弄する新進気鋭' },
+      { id: 'th_05', team: 'CLE', name: 'ギャビン・ウィリアムス', num: 32, pos: '投手', type: '先発', rarity: 'TH', mlbId: '668909', thTitle: 'ア・リーグ 最多奪三振', thStat: '248奪三振', stats: '100マイルの豪速球で三振の山を築く' },
+      { id: 'th_06', team: 'ARI', name: 'ガブリエル・モレノ', num: 14, pos: '野手', type: '捕手', rarity: 'TH', mlbId: '672515', thTitle: 'ナ・リーグ 首位打者', thStat: '.311', stats: '巧みな広角打法とゴールドグラブ級の強肩' },
+      { id: 'th_07', team: 'PHI', name: 'カイル・シュワーバー', num: 12, pos: '野手', type: '外野/DH', rarity: 'TH', mlbId: '656941', thTitle: 'ナ・リーグ 本塁打王', thStat: '45本', stats: '先頭打者アーチと特大ホームランの代名詞' },
+      { id: 'th_08', team: 'CHC', name: 'ピート・クロウ＝アームストロング', num: 52, pos: '野手', type: '外野手', rarity: 'TH', mlbId: '691718', thTitle: 'ナ・リーグ 本塁打王(タイ)', thStat: '45本', stats: '驚異的な成長を遂げた若きスラッガー' },
+      { id: 'th_09', team: 'STL', name: 'アレック・バーレソン', num: 15, pos: '野手', type: '外野/一塁', rarity: 'TH', mlbId: '676475', thTitle: 'ナ・リーグ 打点王', thStat: '116打点', stats: 'チャンスで無類の強さを発揮するクラッチヒッター' },
+      { id: 'th_10', team: 'PHI', name: 'クリストファー・サンチェス', num: 61, pos: '投手', type: '先発', rarity: 'TH', mlbId: '650911', thTitle: 'ナ・リーグ 最多勝', thStat: '18勝', stats: '驚異のゴロ誘導率を誇るシンカーボーラー' },
+      { id: 'th_11', team: 'MIL', name: 'ジェイコブ・ミジオロウスキー', num: 34, pos: '投手', type: '先発', rarity: 'TH', mlbId: '694464', thTitle: 'ナ・リーグ 防御率/奪三振 二冠', thStat: '1.80 252奪三振', stats: '長身から投げ下ろす102マイルの剛球' },
+
+      // LAD
+      { id: 'lad_01', team: 'LAD', name: '大谷 翔平', num: 17, pos: '投手', type: '先発/DH', rarity: 'UR', mlbId: '660271', stats: '本塁打54本 59盗塁 2026二刀流' },
+      { id: 'lad_02', team: 'LAD', name: '山本 由伸', num: 18, pos: '投手', type: '先発', rarity: 'UR', mlbId: '808967', stats: '防御率3.00 7勝2敗 105奪三振' },
+      { id: 'lad_03', team: 'LAD', name: '佐々木 朗希', num: 11, pos: '投手', type: '先発', rarity: 'UR', mlbId: '700363', stats: '最速165km/h 令和の怪物' },
+      { id: 'lad_04', team: 'LAD', name: 'フレディ・フリーマン', num: 5, pos: '野手', type: '一塁手', rarity: 'UR', mlbId: '518692', stats: '打率.282 22本 89打点 WS MVP' },
+      { id: 'lad_05', team: 'LAD', name: 'ムーキー・ベッツ', num: 50, pos: '野手', type: '内野手', rarity: 'UR', mlbId: '605141', stats: '打率.289 19本 75打点 走攻守超人' },
+      { id: 'lad_06', team: 'LAD', name: 'ブレーク・スネル', num: 7, pos: '投手', type: '先発', rarity: 'SSR', mlbId: '605483', stats: 'サイ・ヤング賞2度受賞の左腕' },
+      { id: 'lad_07', team: 'LAD', name: 'タイラー・グラスノー', num: 31, pos: '投手', type: '先発', rarity: 'SSR', mlbId: '607192', stats: '防御率3.49 168奪三振の剛腕' },
+      { id: 'lad_08', team: 'LAD', name: 'タリク・スクバル', num: 29, pos: '投手', type: '先発', rarity: 'SSR', mlbId: '669373', stats: '圧倒的な奪三振率を誇る左腕' },
+      { id: 'lad_09', team: 'LAD', name: 'エドウィン・ディアス', num: 3, pos: '投手', type: '抑え', rarity: 'SSR', mlbId: '621242', stats: '豪快な投球で締める最強守護神' },
+      { id: 'lad_10', team: 'LAD', name: 'ウィル・スミス', num: 16, pos: '野手', type: '捕手', rarity: 'SSR', mlbId: '669257', stats: '打率.248 20本塁打 強打の捕手' },
+      { id: 'lad_11', team: 'LAD', name: 'テオスカー・ヘルナンデス', num: 37, pos: '野手', type: '外野手', rarity: 'SSR', mlbId: '606192', stats: '打率.272 33本 99打点 HRキング' },
+      { id: 'lad_12', team: 'LAD', name: 'カイル・タッカー', num: 23, pos: '野手', type: '外野手', rarity: 'SSR', mlbId: '663656', stats: '天才的打撃センスと選球眼' },
+      { id: 'lad_13', team: 'LAD', name: 'トミー・エドマン', num: 25, pos: '野手', type: '内野手', rarity: 'SR', mlbId: '669242', stats: 'NLCS MVP 万能ユーティリティ' },
+      { id: 'lad_14', team: 'LAD', name: 'マックス・マンシー', num: 13, pos: '野手', type: '三塁手', rarity: 'SR', mlbId: '571970', stats: '高出塁率と長打力を兼備の大砲' },
+      { id: 'lad_15', team: 'LAD', name: 'エンリケ・ヘルナンデス', num: 8, pos: '野手', type: '内野手', rarity: 'SR', mlbId: '571771', stats: '大舞台にめっぽう強い人気者' },
+      { id: 'lad_16', team: 'LAD', name: 'キム・ヘソン', num: 6, pos: '野手', type: '二塁手', rarity: 'SR', mlbId: '673490', stats: '韓国球界屈指の俊足巧打者' },
+      { id: 'lad_17', team: 'LAD', name: 'アンディ・パヘス', num: 44, pos: '野手', type: '外野手', rarity: 'SR', mlbId: '681624', stats: '打率.248 13本 強肩強打の若武者' },
+      { id: 'lad_18', team: 'LAD', name: 'タナー・スコット', num: 66, pos: '投手', type: '救援', rarity: 'SR', mlbId: '656945', stats: '防御率1.75 豪腕サウスポー' },
+      { id: 'lad_19', team: 'LAD', name: 'エバン・フィリップス', num: 59, pos: '投手', type: '救援', rarity: 'SR', mlbId: '623465', stats: '防御率3.62 ブルペンの精神的支柱' },
+      { id: 'lad_20', team: 'LAD', name: 'アレックス・ベシア', num: 51, pos: '投手', type: '救援', rarity: 'SR', mlbId: '681984', stats: '防御率1.76 気迫溢れるリリーフ' },
+      { id: 'lad_21', team: 'LAD', name: 'ブレーク・トライネン', num: 49, pos: '投手', type: '救援', rarity: 'SR', mlbId: '595014', stats: '魔球ターボスライダーで制圧' },
+      { id: 'lad_22', team: 'LAD', name: 'ブラスダー・グラテロル', num: 48, pos: '投手', type: '救援', rarity: 'R', mlbId: '660813', stats: '100マイル連発のパワーリリーフ' },
+      { id: 'lad_23', team: 'LAD', name: 'ボビー・ミラー', num: 28, pos: '投手', type: '先発', rarity: 'R', mlbId: '676272', stats: '将来のエース候補剛腕' },
+      { id: 'lad_24', team: 'LAD', name: 'ギャビン・ストーン', num: 35, pos: '投手', type: '先発', rarity: 'R', mlbId: '694083', stats: '11勝5敗 チェンジアップが武器' },
+      { id: 'lad_25', team: 'LAD', name: 'ランドン・ナック', num: 96, pos: '投手', type: '先発', rarity: 'R', mlbId: '685126', stats: '安定したコマンドを持つ実力派' },
+      { id: 'lad_26', team: 'LAD', name: 'ダルトン・ラッシング', num: 68, pos: '野手', type: '捕手', rarity: 'R', mlbId: '687221', stats: '長打力を秘める期待の捕手' },
+      { id: 'lad_27', team: 'LAD', name: 'クリス・ブービック', num: 40, pos: '投手', type: '救援', rarity: 'R', mlbId: '663460', stats: '変幻自在な投球の変則左腕' },
+      { id: 'lad_28', team: 'LAD', name: 'ブロック・スチュワート', num: 41, pos: '投手', type: '救援', rarity: 'R', mlbId: '592779', stats: '奪三振能力が高い右腕' },
+      { id: 'lad_29', team: 'LAD', name: 'アレックス・コール', num: 12, pos: '野手', type: '外野手', rarity: 'R', mlbId: '607219', stats: '選球眼に優れた巧打者' },
+      { id: 'lad_30', team: 'LAD', name: 'エリク・ラウアー', num: 33, pos: '投手', type: '先発', rarity: 'N', mlbId: '641778', stats: '技巧派左腕' },
+
+      // NYY
+      { id: 'nyy_01', team: 'NYY', name: 'アーロン・ジャッジ', num: 99, pos: '野手', type: '外野手', rarity: 'UR', mlbId: '592450', stats: '打率.322 58本 144打点 現役最強主砲' },
+      { id: 'nyy_02', team: 'NYY', name: 'ゲリット・コール', num: 45, pos: '投手', type: '先発', rarity: 'UR', mlbId: '543037', stats: 'サイ・ヤング賞右腕 エースの風格' },
+      { id: 'nyy_03', team: 'NYY', name: 'マックス・フリード', num: 54, pos: '投手', type: '先発', rarity: 'UR', mlbId: '608331', stats: '球界屈指の制球力と防御率を誇る左腕' },
+      { id: 'nyy_04', team: 'NYY', name: 'ポール・ゴールドシュミット', num: 48, pos: '野手', type: '一塁手', rarity: 'UR', mlbId: '502671', stats: '元MVP 歴戦の強打者' },
+      { id: 'nyy_05', team: 'NYY', name: 'ジアンカルロ・スタントン', num: 27, pos: '野手', type: 'DH/外野', rarity: 'SSR', mlbId: '519317', stats: '打球速度MLB歴代トップの超怪力' },
+      { id: 'nyy_06', team: 'NYY', name: 'コディ・ベリンジャー', num: 35, pos: '野手', type: '外野手', rarity: 'SSR', mlbId: '641355', stats: '元MVP 華麗な守備と長打力' },
+      { id: 'nyy_07', team: 'NYY', name: 'カルロス・ロドン', num: 55, pos: '投手', type: '先発', rarity: 'SSR', mlbId: '607074', stats: '16勝9敗 気迫の投球を見せる左腕' },
+      { id: 'nyy_08', team: 'NYY', name: 'デービッド・ベッドナー', num: 53, pos: '投手', type: '抑え', rarity: 'SSR', mlbId: '670280', stats: '落差あるスプリットで締める守護神' },
+      { id: 'nyy_10', team: 'NYY', name: 'アンソニー・ボルピ', num: 11, pos: '野手', type: '遊撃手', rarity: 'SR', mlbId: '683011', stats: 'GG賞遊撃手 俊足と勝負強さ' },
+      { id: 'nyy_11', team: 'NYY', name: 'ジャズ・チザム', num: 13, pos: '野手', type: '三塁/二塁', rarity: 'SR', mlbId: '665862', stats: '華やかなプレーで球場を沸かすスター' },
+      { id: 'nyy_12', team: 'NYY', name: 'オースティン・ウェルズ', num: 28, pos: '野手', type: '捕手', rarity: 'SR', mlbId: '669304', stats: '優れたリードとパンチ力を秘める正捕手' },
+      { id: 'nyy_13', team: 'NYY', name: 'クラーク・シュミット', num: 36, pos: '投手', type: '先発', rarity: 'SR', mlbId: '657376', stats: '多彩な変化球で打ち取る右腕' },
+      { id: 'nyy_14', team: 'NYY', name: 'ライアン・マクマーン', num: 19, pos: '野手', type: '内野手', rarity: 'SR', mlbId: '641857', stats: '強肩強打の実力派内野手' },
+      { id: 'nyy_15', team: 'NYY', name: 'ジェーソン・ドミンゲス', num: 24, pos: '野手', type: '外野手', rarity: 'SR', mlbId: '691176', stats: '「火星人」と呼ばれる若き怪童' },
+      { id: 'nyy_18', team: 'NYY', name: 'ベン・ライス', num: 22, pos: '野手', type: '一塁/DH', rarity: 'R', mlbId: '700250', stats: '1試合3本塁打を記録した若き大砲' },
+      { id: 'nyy_19', team: 'NYY', name: 'トレント・グリシャム', num: 12, pos: '野手', type: '外野手', rarity: 'R', mlbId: '663757', stats: '高い守備力を誇るゴールドグラバー' },
+
+      // SD
+      { id: 'sd_01', team: 'SD', name: 'ダルビッシュ 有', num: 11, pos: '投手', type: '先発', rarity: 'UR', mlbId: '506433', stats: '日米通算200勝 多彩な魔球を操るレジェンド' },
+      { id: 'sd_02', team: 'SD', name: 'フェルナンド・タティスＪｒ．', num: 23, pos: '野手', type: '外野手', rarity: 'UR', mlbId: '665487', stats: '超人的身体能力を誇る球界のスーパースター' },
+      { id: 'sd_03', team: 'SD', name: 'マニー・マチャド', num: 13, pos: '野手', type: '三塁手', rarity: 'UR', mlbId: '592518', stats: '通算300本塁打超え パドレスの絶対的キャプテン' },
+      { id: 'sd_04', team: 'SD', name: '松井 裕樹', num: 1, pos: '投手', type: '救援', rarity: 'SSR', mlbId: '673513', stats: '消えるスプリットとスライダーで三振を奪う左腕' },
+      { id: 'sd_05', team: 'SD', name: 'ジャクソン・メリル', num: 3, pos: '野手', type: '中堅手', rarity: 'SSR', mlbId: '701538', stats: '勝負強さ抜群の天才若きスター' },
+      { id: 'sd_06', team: 'SD', name: 'ザンダー・ボガーツ', num: 2, pos: '野手', type: '二塁/遊撃', rarity: 'SSR', mlbId: '593428', stats: '通算2000安打目前 シルバースラッガー常連' },
+      { id: 'sd_07', team: 'SD', name: 'ウォーカー・ビューラー', num: 10, pos: '投手', type: '先発', rarity: 'SSR', mlbId: '621111', stats: '大舞台で真価を発揮する豪腕エース' },
+      { id: 'sd_08', team: 'SD', name: 'マイケル・キング', num: 34, pos: '投手', type: '先発', rarity: 'SSR', mlbId: '650633', stats: '圧巻の防御率と奪三振を誇る右腕' },
+      { id: 'sd_09', team: 'SD', name: 'メーソン・ミラー', num: 22, pos: '投手', type: '抑え', rarity: 'SSR', mlbId: '695243', stats: '人類最速級104マイルを投げ込む剛腕' },
+      { id: 'sd_10', team: 'SD', name: 'ジョー・マスグローブ', num: 44, pos: '投手', type: '先発', rarity: 'SR', mlbId: '605397', stats: 'ノーヒッター達成の実績を持つ地元出身右腕' },
+
+      // SF
+      { id: 'sf_01', team: 'SF', name: 'ローガン・ウェブ', num: 62, pos: '投手', type: '先発', rarity: 'UR', mlbId: '657277', stats: 'サイ・ヤング賞最終候補常連のシンカーボーラー' },
+      { id: 'sf_02', team: 'SF', name: 'マット・チャプマン', num: 26, pos: '野手', type: '三塁手', rarity: 'UR', mlbId: '656305', stats: 'プラチナグラブ4度受賞の三塁守備職人＆大砲' },
+      { id: 'sf_03', team: 'SF', name: 'ラファエル・ディバース', num: 16, pos: '野手', type: '三塁/内野', rarity: 'UR', mlbId: '646240', stats: '球界トップクラスのスラッガー' },
+      { id: 'sf_04', team: 'SF', name: 'ウィリー・アダメス', num: 2, pos: '野手', type: '遊撃手', rarity: 'UR', mlbId: '642715', stats: '攻守でチームを牽引する強打の正遊撃手' },
+      { id: 'sf_05', team: 'SF', name: 'イ・ジョンフ', num: 51, pos: '野手', type: '外野手', rarity: 'SSR', mlbId: '808982', stats: '「風の孫」 卓越したバットコントロール' },
+      { id: 'sf_06', team: 'SF', name: 'カミロ・ドバル', num: 57, pos: '投手', type: '抑え', rarity: 'SSR', mlbId: '666808', stats: '102マイルのカッターを投げる剛腕クローザー' }
+    ];
+
+    // カードの総合戦闘力（能力値）を算出する関数 (イベントカードは+1ボーナス)
+    function getCardPower(p) {
+      var base = 5;
+      if (p.rarity === 'UR') base = 13;
+      else if (p.rarity === 'SSR') base = 11;
+      else if (p.rarity === 'SR') base = 9;
+      else if (p.rarity === 'R') base = 7;
+      else if (p.rarity === 'N') base = 5;
+
+      // イベント限定カード（JAPAN, ANNIV, TH）は基礎値高め + イベントボーナス1加算
+      var isEvent = (p.rarity === 'JAPAN' || p.rarity === 'ANNIV' || p.rarity === 'TH');
+      if (isEvent) {
+        base = 14 + 1; // イベントカードボーナス(+1)
+      }
+      return base;
+    }
+
+    // 状態管理変数
+    var userEnergy = 1000;
+    var ownedMap = {};
+    var thPityCounter = 0;
+    var annivPityCounter = 0;
+    var japanPityCounter = 0;
+    var currentScoutMode = 'NORMAL';
+
+    // ユーザー情報 ＆ オーダー ＆ ランキング
+    var userProfile = {
+      name: 'ルーキー監督',
+      avatarId: 'lad_01',
+      rp: 0
+    };
+
+    // オーダー枠（1〜9番野手 ＋ 投手3人 = 12人）
+    var userOrder = Array(12).fill(null);
+
+    // CPU強豪ランキングマスター (1位〜10位を独占する強豪)
+    var CPU_LEADERBOARD = [
+      { rank: 1, name: '豪腕ドジャース2026', power: 182, rp: 2540, avatarId: 'lad_01' },
+      { rank: 2, name: 'ヤンキース銀河帝国', power: 179, rp: 2310, avatarId: 'nyy_01' },
+      { rank: 3, name: 'サンディエゴ超人軍', power: 176, rp: 2150, avatarId: 'anniv_01' },
+      { rank: 4, name: '歴代タイトルホルダーズ', power: 174, rp: 1980, avatarId: 'th_01' },
+      { rank: 5, name: '侍ジャパン・メジャー部', power: 171, rp: 1820, avatarId: 'jp_01' },
+      { rank: 6, name: 'ベイエリア・ジャイアンツ', power: 168, rp: 1690, avatarId: 'sf_01' },
+      { rank: 7, name: 'ア・リーグ選抜オールスター', power: 165, rp: 1540, avatarId: 'nyy_02' },
+      { rank: 8, name: 'ナ・リーグ猛獣打線', power: 162, rp: 1410, avatarId: 'th_02' },
+      { rank: 9, name: 'サイヤング投手王国', power: 158, rp: 1290, avatarId: 'sd_01' },
+      { rank: 10, name: 'プロスペクト・ドリーム', power: 154, rp: 1180, avatarId: 'jp_03' }
+    ];
+
+    try {
+      userEnergy = parseInt(localStorage.getItem('mlb_scout_energy') || '1000', 10);
+      ownedMap = JSON.parse(localStorage.getItem('mlb_scout_owned') || '{}');
+      thPityCounter = parseInt(localStorage.getItem('mlb_th_pity_count') || '0', 10);
+      annivPityCounter = parseInt(localStorage.getItem('mlb_anniv_pity_count') || '0', 10);
+      japanPityCounter = parseInt(localStorage.getItem('mlb_japan_pity_count') || '0', 10);
+      userProfile = JSON.parse(localStorage.getItem('mlb_user_profile') || JSON.stringify(userProfile));
+      userOrder = JSON.parse(localStorage.getItem('mlb_user_order') || JSON.stringify(userOrder));
+    } catch(e) {}
+
+    function saveState() {
+      try {
+        localStorage.setItem('mlb_scout_energy', userEnergy.toString());
+        localStorage.setItem('mlb_scout_owned', JSON.stringify(ownedMap));
+        localStorage.setItem('mlb_th_pity_count', thPityCounter.toString());
+        localStorage.setItem('mlb_anniv_pity_count', annivPityCounter.toString());
+        localStorage.setItem('mlb_japan_pity_count', japanPityCounter.toString());
+        localStorage.setItem('mlb_user_profile', JSON.stringify(userProfile));
+        localStorage.setItem('mlb_user_order', JSON.stringify(userOrder));
+      } catch(e) {}
+      updateHeaderUI();
+      updateZukanProgress();
+      updateScoutInfoBar();
+      updateUserProfileUI();
+      renderOrderUI();
+      renderLeaderboardUI();
+    }
+
+    function updateUserProfileUI() {
+      var nameEl = document.getElementById('user-display-name');
+      if (nameEl) nameEl.innerText = userProfile.name;
+      var slot = document.getElementById('user-avatar-slot');
+      if (slot && userProfile.avatarId) {
+        var p = PLAYERS.find(function(x) { return x.id === userProfile.avatarId; });
+        if (p) {
+          var src = p.imgUrl ? p.imgUrl : (p.mlbId ? ('https://midfield.mlbstatic.com/v1/people/' + p.mlbId + '/spots/300') : createSilhouetteSVG(p.num));
+          slot.innerHTML = '<img src="' + src + '" class="w-full h-full object-cover" onerror="handleImageError(this, \'' + p.team + '\', \'' + p.num + '\')">';
+        }
+      }
+      var rpEl = document.getElementById('user-rp-display');
+      if (rpEl) rpEl.innerText = userProfile.rp.toLocaleString();
+    }
+
+    function updateHeaderUI() {
+      var energyEl = document.getElementById('header-energy');
+      if (energyEl) energyEl.innerText = userEnergy.toLocaleString();
+      var ownedTotal = 0;
+      for (var k in ownedMap) { ownedTotal += ownedMap[k]; }
+      var countEl = document.getElementById('header-player-count');
+      if (countEl) countEl.innerText = ownedTotal;
+    }
+
+    function updateZukanProgress() {
+      var total = PLAYERS.length;
+      var ownedCount = Object.keys(ownedMap).length;
+      var percent = ((ownedCount / total) * 100).toFixed(1);
+      var zukanEl = document.getElementById('zukan-percent');
+      if (zukanEl) zukanEl.innerText = percent + '%';
+    }
+
+    // 初回プロフィール登録
+    function checkUserProfileSetup() {
+      if (!localStorage.getItem('mlb_user_profile_set')) {
+        openProfileSetupModal();
+      }
+    }
+
+    function openProfileSetupModal() {
+      var modal = document.getElementById('profile-setup-modal');
+      var picker = document.getElementById('setup-avatar-picker');
+      picker.innerHTML = '';
+
+      var ownedKeys = Object.keys(ownedMap);
+      var candidates = PLAYERS.filter(function(p) { return ownedKeys.indexOf(p.id) !== -1; });
+      if (candidates.length === 0) candidates = PLAYERS.slice(0, 8); // 最初期用
+
+      candidates.forEach(function(p, i) {
+        var src = p.imgUrl ? p.imgUrl : (p.mlbId ? ('https://midfield.mlbstatic.com/v1/people/' + p.mlbId + '/spots/300') : createSilhouetteSVG(p.num));
+        var div = document.createElement('div');
+        div.className = 'w-14 h-14 rounded-full overflow-hidden border-2 cursor-pointer transition p-0.5 ' + (i === 0 ? 'border-amber-400 bg-amber-500/20' : 'border-stone-700');
+        div.innerHTML = '<img src="' + src + '" class="w-full h-full object-cover rounded-full">';
+        div.onclick = function() {
+          Array.from(picker.children).forEach(function(c) { c.className = 'w-14 h-14 rounded-full overflow-hidden border-2 cursor-pointer transition p-0.5 border-stone-700'; });
+          div.className = 'w-14 h-14 rounded-full overflow-hidden border-2 cursor-pointer transition p-0.5 border-amber-400 bg-amber-500/20';
+          userProfile.avatarId = p.id;
+        };
+        picker.appendChild(div);
+      });
+
+      if (candidates.length > 0) userProfile.avatarId = candidates[0].id;
+      modal.classList.remove('modal-hidden');
+      modal.classList.add('modal-visible');
+    }
+
+    function saveUserProfile() {
+      var val = document.getElementById('setup-username-input').value.trim();
+      if (val) userProfile.name = val;
+      localStorage.setItem('mlb_user_profile_set', 'true');
+      var modal = document.getElementById('profile-setup-modal');
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+      saveState();
+    }
+
+    // オーダーUIレンダリング＆合計値算出
+    function renderOrderUI() {
+      var container = document.getElementById('order-slots-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var totalPower = 0;
+      var slotLabels = [
+        '1番 (野)', '2番 (野)', '3番 (野)', '4番 (野)', '5番 (野)',
+        '6番 (野)', '7番 (野)', '8番 (野)', '9番 (野)', '先発投手', '中継投手', '抑え投手'
+      ];
+
+      for (var i = 0; i < 12; i++) {
+        var pId = userOrder[i];
+        var p = pId ? PLAYERS.find(function(x) { return x.id === pId; }) : null;
+        var pPower = p ? getCardPower(p) : 0;
+        totalPower += pPower;
+
+        var div = document.createElement('div');
+        div.className = 'p-2 bg-stone-950/80 border border-stone-800 rounded-lg flex items-center justify-between cursor-pointer hover:border-amber-400 transition';
+        div.onclick = (function(slotIndex) {
+          return function() { openSlotSelectModal(slotIndex); };
+        })(i);
+
+        if (p) {
+          var src = p.imgUrl ? p.imgUrl : (p.mlbId ? ('https://midfield.mlbstatic.com/v1/people/' + p.mlbId + '/spots/300') : createSilhouetteSVG(p.num));
+          var isEvent = (p.rarity === 'JAPAN' || p.rarity === 'ANNIV' || p.rarity === 'TH');
+          div.innerHTML = '<div class="flex items-center gap-1.5 overflow-hidden">' +
+            '<div class="w-8 h-8 rounded-full overflow-hidden bg-stone-800 shrink-0 border border-amber-400/60"><img src="' + src + '" class="w-full h-full object-cover"></div>' +
+            '<div class="overflow-hidden leading-tight">' +
+            '<div class="text-[9px] text-stone-400 font-bold">' + slotLabels[i] + '</div>' +
+            '<div class="text-[11px] font-bold text-white truncate">' + p.name + '</div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="text-right shrink-0">' +
+            '<span class="font-num text-base font-black text-amber-400">' + pPower + '</span>' +
+            (isEvent ? '<span class="text-[8px] text-rose-400 font-bold block leading-none">+1</span>' : '') +
+            '</div>';
+        } else {
+          div.innerHTML = '<div class="text-[10px] text-stone-500 font-bold">' + slotLabels[i] + '</div>' +
+            '<div class="text-[10px] text-stone-600 font-bold">未設定 (タップ)</div>';
+        }
+        container.appendChild(div);
+      }
+
+      document.getElementById('order-total-power').innerText = totalPower;
+    }
+
+    // おまかせ最強オーダー自動編成
+    function autoSetBestOrder() {
+      var ownedKeys = Object.keys(ownedMap).filter(function(k) { return ownedMap[k] > 0; });
+      if (ownedKeys.length === 0) {
+        alert('所持選手がいません！スカウトを引いて選手を獲得してください。');
+        return;
+      }
+      var available = ownedKeys.map(function(k) { return PLAYERS.find(function(x) { return x.id === k; }); }).filter(Boolean);
+      available.sort(function(a, b) { return getCardPower(b) - getCardPower(a); });
+
+      for (var i = 0; i < 12; i++) {
+        userOrder[i] = available[i % available.length].id;
+      }
+      saveState();
+      alert('所持選手の中から最強のオーダーを編成しました！');
+    }
+
+    var currentEditingSlot = 0;
+    function openSlotSelectModal(slotIndex) {
+      currentEditingSlot = slotIndex;
+      var modal = document.getElementById('slot-select-modal');
+      var listEl = document.getElementById('slot-select-list');
+      listEl.innerHTML = '';
+
+      var ownedKeys = Object.keys(ownedMap).filter(function(k) { return ownedMap[k] > 0; });
+      var list = ownedKeys.map(function(k) { return PLAYERS.find(function(x) { return x.id === k; }); }).filter(Boolean);
+      list.sort(function(a, b) { return getCardPower(b) - getCardPower(a); });
+
+      list.forEach(function(p) {
+        var card = document.createElement('div');
+        card.className = 'p-1.5 rounded-lg border border-stone-700 bg-stone-950 text-center cursor-pointer hover:border-amber-400';
+        var src = p.imgUrl ? p.imgUrl : (p.mlbId ? ('https://midfield.mlbstatic.com/v1/people/' + p.mlbId + '/spots/300') : createSilhouetteSVG(p.num));
+        card.innerHTML = '<div class="w-12 h-12 mx-auto rounded-full overflow-hidden bg-stone-800 mb-1"><img src="' + src + '" class="w-full h-full object-cover"></div>' +
+          '<div class="text-[10px] font-bold text-white truncate">' + p.name + '</div>' +
+          '<div class="font-num text-xs text-amber-400 font-bold">' + getCardPower(p) + ' PT</div>';
+        card.onclick = function() {
+          userOrder[currentEditingSlot] = p.id;
+          closeSlotModal();
+          saveState();
+        };
+        listEl.appendChild(card);
+      });
+
+      modal.classList.remove('modal-hidden');
+      modal.classList.add('modal-visible');
+    }
+
+    function closeSlotModal() {
+      var modal = document.getElementById('slot-select-modal');
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+    }
+
+    // CPUランキング対戦ロジック
+    function playMatch(diff) {
+      var totalPower = 0;
+      for (var i = 0; i < 12; i++) {
+        var p = userOrder[i] ? PLAYERS.find(function(x) { return x.id === userOrder[i]; }) : null;
+        totalPower += p ? getCardPower(p) : 0;
+      }
+
+      if (totalPower === 0) {
+        alert('スタメンオーダーが空です！「おまかせ最強」ボタンでオーダーを組んでください。');
+        return;
+      }
+
+      var cpuTarget = 110;
+      var rewardRP = 30;
+      var cpuName = 'ビギナーズ';
+      if (diff === 'ROOKIE') {
+        cpuTarget = 100 + Math.floor(Math.random() * 20);
+        rewardRP = 30;
+        cpuName = 'ビギナーズ';
+      } else if (diff === 'PRO') {
+        cpuTarget = 135 + Math.floor(Math.random() * 20);
+        rewardRP = 70;
+        cpuName = 'オールスターズ';
+      } else if (diff === 'MASTER') {
+        cpuTarget = 165 + Math.floor(Math.random() * 25);
+        rewardRP = 150;
+        cpuName = 'レジェンズ';
+      }
+
+      // ランダム要素(±5)
+      var userFinalScore = totalPower + (Math.floor(Math.random() * 11) - 5);
+      var isWin = userFinalScore >= cpuTarget;
+
+      var verdictEl = document.getElementById('match-verdict');
+      var rpEl = document.getElementById('match-rp-reward');
+      document.getElementById('match-user-score').innerText = userFinalScore;
+      document.getElementById('match-cpu-name').innerText = cpuName;
+      document.getElementById('match-cpu-score').innerText = cpuTarget;
+
+      if (isWin) {
+        verdictEl.innerText = 'VICTORY !!';
+        verdictEl.className = 'text-3xl font-black italic tracking-widest font-pop text-amber-400 animate-bounce';
+        userProfile.rp += rewardRP;
+        rpEl.innerText = '見事勝利！ +' + rewardRP + ' ランキングポイント(RP) 獲得！';
+      } else {
+        verdictEl.innerText = 'DEFEAT...';
+        verdictEl.className = 'text-3xl font-black italic tracking-widest font-pop text-stone-500';
+        var getLossRP = Math.floor(rewardRP / 4);
+        userProfile.rp += getLossRP;
+        rpEl.innerText = '惜敗... 健闘ボーナス +' + getLossRP + ' RP獲得';
+      }
+
+      saveState();
+      var modal = document.getElementById('match-result-modal');
+      modal.classList.remove('modal-hidden');
+      modal.classList.add('modal-visible');
+    }
+
+    function closeMatchModal() {
+      var modal = document.getElementById('match-result-modal');
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+    }
+
+    // ランキング表描画（あなた ＋ 独占強豪CPU10人）
+    function renderLeaderboardUI() {
+      var container = document.getElementById('ranking-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var allBoard = CPU_LEADERBOARD.slice();
+      allBoard.push({
+        rank: 999,
+        name: userProfile.name + ' (あなた)',
+        power: document.getElementById('order-total-power') ? parseInt(document.getElementById('order-total-power').innerText, 10) : 0,
+        rp: userProfile.rp,
+        isUser: true,
+        avatarId: userProfile.avatarId
+      });
+
+      allBoard.sort(function(a, b) { return b.rp - a.rp; });
+
+      allBoard.forEach(function(entry, idx) {
+        var rankNum = idx + 1;
+        var isMe = entry.isUser;
+        var p = PLAYERS.find(function(x) { return x.id === entry.avatarId; });
+        var src = p ? (p.imgUrl ? p.imgUrl : (p.mlbId ? ('https://midfield.mlbstatic.com/v1/people/' + p.mlbId + '/spots/300') : createSilhouetteSVG(p.num))) : createSilhouetteSVG(0);
+
+        var row = document.createElement('div');
+        row.className = 'p-1.5 rounded-lg flex items-center justify-between border ' + (isMe ? 'bg-amber-500/20 border-amber-400 font-bold' : 'bg-stone-950/70 border-stone-800');
+        row.innerHTML = '<div class="flex items-center gap-2 overflow-hidden">' +
+          '<span class="font-num text-sm w-4 text-center ' + (rankNum <= 3 ? 'text-amber-400 font-black' : 'text-stone-400') + '">' + rankNum + '</span>' +
+          '<div class="w-6 h-6 rounded-full overflow-hidden bg-stone-800 shrink-0"><img src="' + src + '" class="w-full h-full object-cover"></div>' +
+          '<div class="truncate ' + (isMe ? 'text-amber-300' : 'text-stone-300') + '">' + entry.name + '</div>' +
+          '</div>' +
+          '<div class="font-num text-sm font-bold text-white shrink-0">' + entry.rp.toLocaleString() + ' <span class="text-[9px] text-stone-400">RP</span></div>';
+        container.appendChild(row);
+      });
+    }
+
+    // バナー管理
+    var HEROES_NORMAL = [
+      { id: 'lad_01', team: 'LAD', name: '大谷 翔平', pos: '投手/DH #17', mlbId: '660271', num: 17, rarity: 'UR', spirits: '4500', feature: '超豪速球・広角打法・二刀流極', s1: ['球速/パワー', '165 km/h <span class="text-[10px] text-rose-400">S</span>'], s2: ['制球/ミート', '82 <span class="text-[10px] text-rose-400">A</span>'], s3: ['スタミナ/走力', '86 <span class="text-[10px] text-rose-400">A</span>'] },
+      { id: 'nyy_01', team: 'NYY', name: 'アーロン・ジャッジ', pos: '外野手 #99', mlbId: '592450', num: 99, rarity: 'UR', spirits: '4500', feature: '超アーチスト・広角打法・存在感', s1: ['パワー', '89 <span class="text-[10px] text-rose-400">S</span>'], s2: ['ミート', '84 <span class="text-[10px] text-rose-400">A</span>'], s3: ['走力/守備', '74 <span class="text-[10px] text-amber-400">B</span>'] }
+    ];
+    var HEROES_TH = [
+      { id: 'th_02', team: 'NYM', name: 'ピート・アロンソ', pos: '一塁手 #20', mlbId: '624413', num: 20, rarity: 'TH', spirits: '4600', feature: 'ア・リーグ 二冠王 (43本 113打点)', s1: ['パワー', '88 <span class="text-[10px] text-rose-400">S</span>'], s2: ['打点力', '90 <span class="text-[10px] text-rose-400">S</span>'], s3: ['ミート', '78 <span class="text-[10px] text-amber-400">B</span>'] },
+      { id: 'th_01', team: 'HOU', name: 'ヨーダン・アルバレス', pos: 'DH #44', mlbId: '670541', num: 44, rarity: 'TH', spirits: '4600', feature: 'ア・リーグ 首位打者 (.316)', s1: ['ミート', '89 <span class="text-[10px] text-rose-400">S</span>'], s2: ['パワー', '87 <span class="text-[10px] text-rose-400">A</span>'], s3: ['選球眼', '92 <span class="text-[10px] text-rose-400">S</span>'] }
+    ];
+    var HEROES_ANNIV = [
+      { id: 'anniv_01', team: 'SD', name: 'フェルナンド・タティスJr.', pos: '外野手 #23', mlbId: '665487', num: 23, rarity: 'ANNIV', spirits: '4700', feature: '豪華金箔サイン入り！アニバーサリー限定', s1: ['走力/強肩', '92 <span class="text-[10px] text-rose-400">S</span>'], s2: ['パワー', '89 <span class="text-[10px] text-rose-400">S</span>'], s3: ['ミート', '84 <span class="text-[10px] text-rose-400">A</span>'] },
+      { id: 'anniv_02', team: 'LAD', name: '大谷 翔平', pos: 'DH/投手 #17', mlbId: '660271', num: 17, rarity: 'ANNIV', spirits: '4700', feature: '豪華金箔サイン入り！超二刀流極アニバ', s1: ['球速/パワー', '165 km/h <span class="text-[10px] text-rose-400">S</span>'], s2: ['走力', '89 <span class="text-[10px] text-rose-400">S</span>'], s3: ['制球', '83 <span class="text-[10px] text-rose-400">A</span>'] }
+    ];
+    var HEROES_JAPAN = [
+      { id: 'jp_01', team: 'NPB', name: '今井 達也', pos: '先発 #48', imgUrl: 'imai.jpg', num: 48, rarity: 'JAPAN', spirits: '4650', feature: '超剛速球・キレのあるスライダー・奪三振', s1: ['球速', '159 km/h <span class="text-[10px] text-rose-400">S</span>'], s2: ['制球', '80 <span class="text-[10px] text-rose-400">A</span>'], s3: ['スタミナ', '85 <span class="text-[10px] text-rose-400">A</span>'] },
+      { id: 'jp_02', team: 'NPB', name: '青柳 晃洋', pos: '先発 #17', imgUrl: 'aoyagi.jpg', num: 17, rarity: 'JAPAN', spirits: '4600', feature: '変則魔球シンカー・ゴロ量産・最多勝', s1: ['球速', '148 km/h <span class="text-[10px] text-amber-400">B</span>'], s2: ['制球', '84 <span class="text-[10px] text-rose-400">A</span>'], s3: ['スタミナ', '86 <span class="text-[10px] text-rose-400">A</span>'] },
+      { id: 'jp_03', team: 'NPB', name: '伊藤 大海', pos: '先発 #17', imgUrl: 'ito.jpg', num: 17, rarity: 'JAPAN', spirits: '4650', feature: '超精密制球・多彩な変化球・闘志', s1: ['球速', '155 km/h <span class="text-[10px] text-rose-400">A</span>'], s2: ['制球', '87 <span class="text-[10px] text-rose-400">A</span>'], s3: ['スタミナ', '86 <span class="text-[10px] text-rose-400">A</span>'] },
+      { id: 'jp_04', team: 'NPB', name: '平良 海馬', pos: '先発/抑え #61', imgUrl: 'taira.jpg', num: 61, rarity: 'JAPAN', spirits: '4650', feature: '剛腕パワーピッチ・快速カット・剛球', s1: ['球速', '160 km/h <span class="text-[10px] text-rose-400">S</span>'], s2: ['制球', '81 <span class="text-[10px] text-rose-400">A</span>'], s3: ['スタミナ', '83 <span class="text-[10px] text-rose-400">A</span>'] }
+    ];
+
+    var bannerIndex = 0;
+    var bannerInterval = null;
+
+    function getCurrentHeroesList() {
+      if (currentScoutMode === 'JAPAN') return HEROES_JAPAN;
+      if (currentScoutMode === 'ANNIV') return HEROES_ANNIV;
+      if (currentScoutMode === 'TH') return HEROES_TH;
+      return HEROES_NORMAL;
+    }
+
+    function renderBannerHero(h) {
+      var slideBox = document.getElementById('banner-slide-content');
+      slideBox.classList.remove('slide-in-right');
+      void slideBox.offsetWidth;
+      slideBox.classList.add('slide-in-right');
+
+      var bTeamBadge = document.getElementById('banner-badge-team');
+      var bImg = document.getElementById('banner-player-img');
+      var bPos = document.getElementById('banner-player-pos');
+      var bName = document.getElementById('banner-player-name');
+      var bSpirits = document.getElementById('banner-player-spirits');
+      var bFeature = document.getElementById('banner-player-feature');
+      var bFeatureBadge = document.getElementById('banner-feature-badge');
+      var bRarityPill = document.getElementById('banner-rarity-pill');
+
+      bTeamBadge.className = 'bg-stone-800 text-white font-black text-[10px] px-1.5 py-0.5 rounded';
+      bTeamBadge.innerText = h.team;
+
+      if (h.rarity === 'JAPAN') {
+        bRarityPill.className = 'absolute top-1 left-1 bg-gradient-to-r from-red-600 to-rose-700 text-white text-[10px] font-black px-1.5 rounded shadow animate-pulse';
+        bRarityPill.innerText = 'JPN';
+        bFeatureBadge.innerText = '🇯🇵 挑戦者';
+        bFeatureBadge.className = 'text-rose-400 font-bold shrink-0 mr-2';
+      } else if (h.rarity === 'ANNIV') {
+        bRarityPill.className = 'absolute top-1 left-1 bg-gradient-to-r from-cyan-400 to-blue-600 text-stone-950 text-[10px] font-black px-1.5 rounded shadow animate-pulse';
+        bRarityPill.innerText = 'ANNIV';
+        bFeatureBadge.innerText = '✨ サイン';
+        bFeatureBadge.className = 'text-cyan-400 font-bold shrink-0 mr-2';
+      } else if (h.rarity === 'TH') {
+        bRarityPill.className = 'absolute top-1 left-1 bg-gradient-to-r from-amber-400 to-yellow-500 text-stone-950 text-[10px] font-black px-1.5 rounded shadow';
+        bRarityPill.innerText = 'TH';
+        bFeatureBadge.innerText = '🏆 タイトル';
+        bFeatureBadge.className = 'text-amber-400 font-bold shrink-0 mr-2';
+      } else {
+        bRarityPill.className = 'absolute top-1 left-1 bg-gradient-to-r from-pink-600 to-rose-600 text-white text-[10px] font-black px-1.5 rounded shadow';
+        bRarityPill.innerText = 'UR';
+        bFeatureBadge.innerText = '超特殊能力';
+        bFeatureBadge.className = 'text-rose-400 font-bold shrink-0 mr-2';
+      }
+
+      bImg.onerror = function() { handleImageError(bImg, h.team, h.num); };
+      bImg.src = h.imgUrl ? h.imgUrl : (h.mlbId ? ('https://midfield.mlbstatic.com/v1/people/' + h.mlbId + '/spots/300') : createSilhouetteSVG(h.num));
+
+      bPos.innerText = h.pos;
+      bName.innerText = h.name;
+      bSpirits.innerText = h.spirits;
+      bFeature.innerText = h.feature;
+
+      document.getElementById('stat-label-1').innerText = h.s1[0];
+      document.getElementById('stat-val-1').innerHTML = h.s1[1];
+      document.getElementById('stat-label-2').innerText = h.s2[0];
+      document.getElementById('stat-val-2').innerHTML = h.s2[1];
+      document.getElementById('stat-label-3').innerText = h.s3[0];
+      document.getElementById('stat-val-3').innerHTML = h.s3[1];
+    }
+
+    function rotateBannerHero() {
+      var list = getCurrentHeroesList();
+      bannerIndex = (bannerIndex + 1) % list.length;
+      renderBannerHero(list[bannerIndex]);
+    }
+
+    function startBannerInterval() {
+      if (bannerInterval) clearInterval(bannerInterval);
+      bannerInterval = setInterval(rotateBannerHero, 3500);
+    }
+
+    function switchScoutMode(mode) {
+      currentScoutMode = mode;
+      var btnNorm = document.getElementById('btn-mode-normal');
+      var btnTH = document.getElementById('btn-mode-th');
+      var btnAnniv = document.getElementById('btn-mode-anniv');
+      var btnJapan = document.getElementById('btn-mode-japan');
+      var subTitle = document.getElementById('header-subtitle');
+
+      btnNorm.className = 'py-1.5 rounded-lg bg-stone-800 text-stone-400 font-bold hover:text-white flex items-center justify-center gap-0.5 transition';
+      btnTH.className = 'py-1.5 rounded-lg bg-stone-800 text-stone-400 font-bold hover:text-white flex items-center justify-center gap-0.5 transition';
+      btnAnniv.className = 'py-1.5 rounded-lg bg-stone-800 text-cyan-400 font-bold hover:text-cyan-300 flex items-center justify-center gap-0.5 transition border border-cyan-500/30';
+      btnJapan.className = 'py-1.5 rounded-lg bg-stone-800 text-rose-400 font-bold hover:text-rose-300 flex items-center justify-center gap-0.5 transition border border-rose-500/30';
+
+      if (mode === 'NORMAL') {
+        btnNorm.className = 'py-1.5 rounded-lg bg-amber-500 text-stone-950 font-black flex items-center justify-center gap-0.5 transition';
+        document.getElementById('banner-mode-title').innerText = '4球団混合プレミアムセレクション開催中！';
+        subTitle.innerText = '| 通常セレクション';
+      } else if (mode === 'TH') {
+        btnTH.className = 'py-1.5 rounded-lg bg-amber-500 text-stone-950 font-black flex items-center justify-center gap-0.5 transition';
+        document.getElementById('banner-mode-title').innerText = '🏆 タイトルホルダー限定スカウト開催中！';
+        subTitle.innerText = '| タイトルホルダー';
+      } else if (mode === 'ANNIV') {
+        btnAnniv.className = 'py-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-500 text-stone-950 font-black flex items-center justify-center gap-0.5 transition shadow';
+        document.getElementById('banner-mode-title').innerText = '✨ 金箔サイン入り アニバーサリースカウト開催中！';
+        subTitle.innerText = '| アニバーサリー';
+      } else if (mode === 'JAPAN') {
+        btnJapan.className = 'py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-white font-black flex items-center justify-center gap-0.5 transition shadow';
+        document.getElementById('banner-mode-title').innerText = '🇯🇵 今季メジャー挑戦選手セレクション開催中！';
+        subTitle.innerText = '| メジャー挑戦選手';
+      }
+
+      bannerIndex = 0;
+      renderBannerHero(getCurrentHeroesList()[0]);
+      startBannerInterval();
+      updateScoutInfoBar();
+    }
+
+    function updateScoutInfoBar() {
+      var infoText = document.getElementById('scout-info-text');
+      var badge10 = document.getElementById('btn-10-badge');
+      if (!infoText || !badge10) return;
+
+      if (currentScoutMode === 'JAPAN') {
+        var remJp = 30 - (japanPityCounter % 30);
+        if (japanPityCounter > 0 && japanPityCounter % 30 === 0) {
+          infoText.innerHTML = '<span class="text-rose-400">🇯🇵</span> <strong class="text-rose-300 animate-pulse">次回10連で挑戦者確定！！</strong>';
+          badge10.innerText = '★ 挑戦者 確定！ ★';
+          badge10.className = 'text-xs font-black text-white bg-red-600 inline-block px-1 rounded text-[9px] mb-0.5 animate-pulse';
+        } else {
+          infoText.innerHTML = '<span class="text-rose-400">🇯🇵</span> 30連ごとに挑戦者確定！ (' + (japanPityCounter % 30) + '/30連)';
+        }
+      } else if (currentScoutMode === 'TH') {
+        if (thPityCounter < 30) {
+          infoText.innerHTML = '<span class="text-amber-400">🏆</span> あと ' + (30 - thPityCounter) + '連 でTH確定！ (' + thPityCounter + '/30連)';
+        } else if (thPityCounter === 30) {
+          infoText.innerHTML = '<span class="text-amber-400">🏆</span> <strong class="text-amber-300 animate-pulse">次回10連で第1天井 TH確定！！</strong>';
+          badge10.innerText = '★ 30連目 TH確定！ ★';
+          badge10.className = 'text-xs font-black text-white bg-red-600 inline-block px-1 rounded text-[9px] mb-0.5 animate-pulse';
+        } else if (thPityCounter < 60) {
+          infoText.innerHTML = '<span class="text-amber-400">🏆</span> あと ' + (60 - thPityCounter) + '連 でTH再確定！ (' + thPityCounter + '/60連)';
+        } else if (thPityCounter === 60) {
+          infoText.innerHTML = '<span class="text-amber-400">🏆</span> <strong class="text-amber-300 animate-pulse">次回10連で第2天井 TH確定！！</strong>';
+          badge10.innerText = '★ 60連目 TH確定！ ★';
+          badge10.className = 'text-xs font-black text-white bg-red-600 inline-block px-1 rounded text-[9px] mb-0.5 animate-pulse';
+        } else {
+          infoText.innerHTML = '<span class="text-amber-400">🏆</span> 天井到達済み (TH排出率: 1.5%)';
+        }
+      } else if (currentScoutMode === 'ANNIV') {
+        infoText.innerHTML = '<span class="text-cyan-400">✨</span> 30連ごとにアニバ選手確定！ (' + (annivPityCounter % 30) + '/30連)';
+      } else {
+        infoText.innerHTML = '<span class="text-amber-400">⚾</span> 通常プレミアムスカウト開催中';
+      }
+    }
+
+    var JAPAN_PLAYERS = PLAYERS.filter(function(p) { return p.rarity === 'JAPAN'; });
+    var ANNIV_PLAYERS = PLAYERS.filter(function(p) { return p.rarity === 'ANNIV'; });
+    var TH_PLAYERS = PLAYERS.filter(function(p) { return p.rarity === 'TH'; });
+    var ALL_UR = PLAYERS.filter(function(p) { return p.rarity === 'UR'; });
+    var ALL_SSR = PLAYERS.filter(function(p) { return p.rarity === 'SSR'; });
+    var ALL_SR = PLAYERS.filter(function(p) { return p.rarity === 'SR'; });
+    var ALL_R = PLAYERS.filter(function(p) { return p.rarity === 'R'; });
+    var ALL_N = PLAYERS.filter(function(p) { return p.rarity === 'N'; });
+
+    function lotteryCard(isForceSpecial, guaranteeSR) {
+      if (isForceSpecial) {
+        if (currentScoutMode === 'JAPAN') return JAPAN_PLAYERS[Math.floor(Math.random() * JAPAN_PLAYERS.length)];
+        if (currentScoutMode === 'ANNIV') return ANNIV_PLAYERS[Math.floor(Math.random() * ANNIV_PLAYERS.length)];
+        return TH_PLAYERS[Math.floor(Math.random() * TH_PLAYERS.length)];
+      }
+
+      var rand = Math.random() * 100;
+      if (currentScoutMode === 'JAPAN' && rand < 2.5) return JAPAN_PLAYERS[Math.floor(Math.random() * JAPAN_PLAYERS.length)];
+      if (currentScoutMode === 'ANNIV' && rand < 2.0) return ANNIV_PLAYERS[Math.floor(Math.random() * ANNIV_PLAYERS.length)];
+      if (currentScoutMode === 'TH') {
+        var thProb = (thPityCounter >= 60) ? 1.5 : 1.0;
+        if (rand < thProb) return TH_PLAYERS[Math.floor(Math.random() * TH_PLAYERS.length)];
+      }
+
+      if (guaranteeSR) {
+        if (rand < 5.0) return ALL_UR[Math.floor(Math.random() * ALL_UR.length)];
+        if (rand < 25.0) return ALL_SSR[Math.floor(Math.random() * ALL_SSR.length)];
+        return ALL_SR[Math.floor(Math.random() * ALL_SR.length)];
+      } else {
+        if (rand < 1.5) return ALL_UR[Math.floor(Math.random() * ALL_UR.length)];
+        if (rand < 6.5) return ALL_SSR[Math.floor(Math.random() * ALL_SSR.length)];
+        if (rand < 25.0) return ALL_SR[Math.floor(Math.random() * ALL_SR.length)];
+        if (rand < 60.0) return ALL_R[Math.floor(Math.random() * ALL_R.length)];
+        return ALL_N[Math.floor(Math.random() * ALL_N.length)];
+      }
+    }
+
+    var currentResults = [];
+    var currentFlipIndex = 0;
+
+    function pullGacha(count) {
+      var cost = (count === 1) ? 25 : 250;
+      if (userEnergy < cost) {
+        alert('エナジーが足りません！\n「クイズ」に挑戦するか「ショップ」で補充してください。');
+        return;
+      }
+
+      userEnergy -= cost;
+      currentResults = [];
+
+      for (var i = 0; i < count; i++) {
+        var isForceSpecial = false;
+
+        if (currentScoutMode === 'JAPAN') {
+          japanPityCounter++;
+          if (japanPityCounter % 30 === 0) isForceSpecial = true;
+        } else if (currentScoutMode === 'TH') {
+          thPityCounter++;
+          if (thPityCounter === 30 || thPityCounter === 60) isForceSpecial = true;
+        } else if (currentScoutMode === 'ANNIV') {
+          annivPityCounter++;
+          if (annivPityCounter % 30 === 0) isForceSpecial = true;
+        }
+
+        var isGuarantee = (count === 10 && i === 9);
+        var player = lotteryCard(isForceSpecial, isGuarantee);
+        var isNew = !ownedMap[player.id] || ownedMap[player.id] === 0;
+
+        currentResults.push({ player: player, isNew: isNew });
+        ownedMap[player.id] = (ownedMap[player.id] || 0) + 1;
+      }
+      saveState();
+
+      var hasJapan = currentResults.some(function(r) { return r.player.rarity === 'JAPAN'; });
+      var hasAnniv = currentResults.some(function(r) { return r.player.rarity === 'ANNIV'; });
+      var hasTH = currentResults.some(function(r) { return r.player.rarity === 'TH'; });
+      var hasUR = currentResults.some(function(r) { return r.player.rarity === 'UR'; });
+      var hasSSR = currentResults.some(function(r) { return r.player.rarity === 'SSR'; });
+      var hasSR = currentResults.some(function(r) { return r.player.rarity === 'SR'; });
+
+      var cutinType = hasJapan ? 'JAPAN' : (hasAnniv ? 'ANNIV' : (hasTH ? 'TH' : (hasUR ? 'UR' : (hasSSR ? 'SSR' : (hasSR ? 'SR' : 'NORMAL')))));
+      playCutin(cutinType);
+    }
+
+    function playCutin(level) {
+      var overlay = document.getElementById('cutin-overlay');
+      var aura = document.getElementById('cutin-aura');
+      var title = document.getElementById('cutin-text');
+      var sub = document.getElementById('cutin-sub');
+
+      overlay.classList.remove('modal-hidden');
+      overlay.classList.add('modal-visible');
+
+      if (level === 'JAPAN') {
+        aura.className = 'w-72 h-72 rounded-full blur-3xl bg-gradient-to-r from-red-600 via-rose-500 to-amber-300 opacity-95 animate-pulse';
+        title.innerHTML = '<span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-200 to-rose-400">★ メジャー挑戦選手 降臨!! ★</span>';
+        sub.innerText = 'JAPANESE BASEBALL HEROES';
+      } else if (level === 'ANNIV') {
+        aura.className = 'w-72 h-72 rounded-full blur-3xl bg-gradient-to-r from-cyan-400 via-pink-500 to-amber-300 opacity-95 animate-pulse';
+        title.innerHTML = '<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-yellow-200 to-pink-400">★ 豪華アニバーサリー登場!! ★</span>';
+        sub.innerText = 'ANNIVERSARY SIGNED CONTRACT';
+      } else if (level === 'TH') {
+        aura.className = 'w-72 h-72 rounded-full blur-3xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-600 opacity-95 animate-pulse';
+        title.innerHTML = '<span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-500">★ タイトルホルダー降臨!! ★</span>';
+        sub.innerText = 'TITLE HOLDER SPECIAL CONTRACT';
+      } else if (level === 'UR') {
+        aura.className = 'w-72 h-72 rounded-full blur-3xl bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 opacity-90 animate-pulse';
+        title.innerHTML = '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-yellow-300 to-cyan-300">★ 超激レア UR確定!! ★</span>';
+        sub.innerText = 'MLB SUPERSTAR DETECTED';
+      } else if (level === 'SSR') {
+        aura.className = 'w-64 h-64 rounded-full blur-2xl bg-amber-400 opacity-80 animate-pulse';
+        title.innerHTML = '<span class="text-amber-300">★ SSR以上 確定！ ★</span>';
+        sub.innerText = 'GOLDEN CONTRACT';
+      } else if (level === 'SR') {
+        aura.className = 'w-60 h-60 rounded-full blur-2xl bg-purple-600 opacity-70';
+        title.innerHTML = '<span class="text-purple-300">★ CHANCE (SR以上) ★</span>';
+        sub.innerText = 'SPECIAL SCOUT';
+      } else {
+        aura.className = 'w-48 h-48 rounded-full blur-xl bg-blue-600 opacity-40';
+        title.innerHTML = '<span class="text-blue-300">SCOUTING...</span>';
+        sub.innerText = 'REGULAR PACK';
+      }
+
+      setTimeout(function() {
+        overlay.classList.remove('modal-visible');
+        overlay.classList.add('modal-hidden');
+        startCardFlipMode();
+      }, (level === 'JAPAN' || level === 'ANNIV' || level === 'TH' || level === 'UR') ? 2200 : 1300);
+    }
+
+    function startCardFlipMode() {
+      currentFlipIndex = 0;
+      var modal = document.getElementById('flip-modal');
+      modal.classList.remove('modal-hidden');
+      modal.classList.add('modal-visible');
+      document.getElementById('flip-total-count').innerText = currentResults.length;
+      setupCardForIndex(0);
+    }
+
+    function setupCardForIndex(idx) {
+      var r = currentResults[idx];
+      var p = r.player;
+      document.getElementById('flip-current-index').innerText = idx + 1;
+
+      var cardInner = document.getElementById('active-card-inner');
+      var cardBackAura = document.getElementById('card-back-aura');
+      var teamLogo = document.getElementById('card-back-team-logo');
+
+      cardInner.classList.remove('flipped');
+      teamLogo.innerText = 'MLB';
+
+      if (p.rarity === 'JAPAN') cardBackAura.className = 'w-36 h-36 rounded-full blur-2xl bg-red-600/90 absolute animate-pulse';
+      else if (p.rarity === 'ANNIV') cardBackAura.className = 'w-36 h-36 rounded-full blur-2xl bg-cyan-400/90 absolute animate-pulse';
+      else if (p.rarity === 'TH') cardBackAura.className = 'w-36 h-36 rounded-full blur-2xl bg-amber-400/90 absolute animate-pulse';
+      else if (p.rarity === 'UR') cardBackAura.className = 'w-36 h-36 rounded-full blur-2xl bg-pink-500/80 absolute animate-pulse';
+      else if (p.rarity === 'SSR') cardBackAura.className = 'w-32 h-32 rounded-full blur-xl bg-amber-400/70 absolute animate-pulse';
+      else if (p.rarity === 'SR') cardBackAura.className = 'w-28 h-28 rounded-full blur-xl bg-purple-500/50 absolute';
+      else cardBackAura.className = 'w-24 h-24 rounded-full blur-lg bg-blue-500/30 absolute';
+
+      var front = document.getElementById('active-card-front');
+      var holoClass = (p.rarity === 'JAPAN') ? 'holo-JAPAN' : ((p.rarity === 'ANNIV') ? 'holo-ANNIV' : ((p.rarity === 'TH') ? 'holo-TH' : ((p.rarity === 'UR') ? 'holo-UR' : '')));
+      front.className = 'card-front p-3 flex flex-col justify-between border-' + p.rarity + ' ' + holoClass;
+      front.innerHTML = generateCardFrontHTML(p, true, r.isNew);
+    }
+
+    function handleCardFlipClick() {
+      var cardInner = document.getElementById('active-card-inner');
+      if (cardInner.classList.contains('flipped')) {
+        currentFlipIndex++;
+        if (currentFlipIndex >= currentResults.length) {
+          finishFlipMode();
+        } else {
+          setupCardForIndex(currentFlipIndex);
+        }
+      } else {
+        cardInner.classList.add('flipped');
+        document.getElementById('tap-guide').innerText = 'タップして次へ進む';
+      }
+    }
+
+    function skipAllFlips() { finishFlipMode(); }
+    function finishFlipMode() {
+      var modal = document.getElementById('flip-modal');
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+      openSummaryModal();
+    }
+
+    function generateCardFrontHTML(p, isLarge, isNew) {
+      var headshot = p.imgUrl ? p.imgUrl : (p.mlbId ? ('https://midfield.mlbstatic.com/v1/people/' + p.mlbId + '/spots/300') : createSilhouetteSVG(p.num));
+      var sizeClass = isLarge ? 'w-28 h-28' : 'w-14 h-14';
+      var newBadgeHTML = isNew ? '<div class="badge-new">NEW!</div>' : '';
+
+      if (p.rarity === 'JAPAN') {
+        return newBadgeHTML +
+          '<div class="flex items-center justify-between shrink-0 z-10">' +
+          '<div class="flex items-center gap-1"><span class="bg-red-700 text-white font-black text-[9px] px-1 rounded">JPN</span><span class="font-black text-[10px] text-rose-300 font-num">CHALLENGER</span></div>' +
+          '<span class="font-num text-base font-black text-rose-300">#' + p.num + '</span>' +
+          '</div>' +
+          '<div class="flex flex-col items-center justify-center my-auto shrink-0 relative z-10">' +
+          '<div class="' + sizeClass + ' rounded-full overflow-hidden bg-stone-900 border-2 border-red-500 shadow-lg flex items-center justify-center">' +
+          '<img src="' + headshot + '" alt="' + p.name + '" class="w-full h-full object-cover object-top" onerror="handleImageError(this, \'' + p.team + '\', \'' + p.num + '\')">' +
+          '</div>' +
+          '<div class="text-center w-full mt-1.5 px-1">' +
+          '<div class="' + (isLarge ? 'text-sm' : 'text-[11px]') + ' font-black text-white truncate leading-tight">' + p.name + '</div>' +
+          '<div class="text-[9px] text-rose-300 font-bold">' + p.jpTitle + '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div class="bg-gradient-to-r from-red-950 via-slate-900 to-stone-900 rounded p-1 border border-red-500/80 shrink-0 text-center z-10">' +
+          '<div class="text-[8px] text-rose-300 font-bold">🇯🇵 今季メジャー挑戦選手</div>' +
+          '<div class="font-num text-sm text-white font-black leading-tight">SPIRITS 4650</div>' +
+          '</div>';
+      }
+
+      if (p.rarity === 'ANNIV') {
+        return newBadgeHTML +
+          '<div class="flex items-center justify-between shrink-0 z-10">' +
+          '<div class="flex items-center gap-1"><span class="bg-blue-900 text-white font-black text-[9px] px-1 rounded">' + p.team + '</span><span class="font-black text-[10px] text-cyan-300 font-num">ANNIV</span></div>' +
+          '<span class="font-num text-base font-black text-cyan-300">#' + p.num + '</span>' +
+          '</div>' +
+          '<div class="flex flex-col items-center justify-center my-auto shrink-0 relative z-10">' +
+          '<div class="' + sizeClass + ' rounded-full overflow-hidden bg-stone-900 border-2 border-cyan-400 shadow-lg flex items-center justify-center">' +
+          '<img src="' + headshot + '" alt="' + p.name + '" class="w-full h-full object-cover object-top" onerror="handleImageError(this, \'' + p.team + '\', \'' + p.num + '\')">' +
+          '</div>' +
+          '<div class="gold-signature font-sign">' + (p.signature || p.name) + '</div>' +
+          '<div class="text-center w-full mt-1.5 px-1">' +
+          '<div class="' + (isLarge ? 'text-sm' : 'text-[11px]') + ' font-black text-white truncate leading-tight">' + p.name + '</div>' +
+          '<div class="text-[9px] text-cyan-300 font-bold">' + p.annivTitle + '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div class="bg-gradient-to-r from-cyan-950 via-blue-950 to-stone-900 rounded p-1 border border-cyan-400/80 shrink-0 text-center z-10">' +
+          '<div class="text-[8px] text-cyan-300 font-bold">✨ アニバーサリー限定セレクション</div>' +
+          '<div class="font-num text-sm text-amber-300 font-black leading-tight">SPIRITS 4700</div>' +
+          '</div>';
+      }
+
+      if (p.rarity === 'TH') {
+        return newBadgeHTML +
+          '<div class="flex items-center justify-between shrink-0">' +
+          '<div class="flex items-center gap-1"><span class="bg-stone-800 text-white font-black text-[9px] px-1 rounded">' + p.team + '</span><span class="font-black text-[10px] text-amber-300 font-num">TH 2026</span></div>' +
+          '<span class="font-num text-base font-black text-amber-400">#' + p.num + '</span>' +
+          '</div>' +
+          '<div class="flex flex-col items-center justify-center my-auto shrink-0">' +
+          '<div class="' + sizeClass + ' rounded-full overflow-hidden bg-stone-800 border-2 border-amber-400 shadow-md flex items-center justify-center">' +
+          '<img src="' + headshot + '" alt="' + p.name + '" class="w-full h-full object-cover object-top" onerror="handleImageError(this, \'' + p.team + '\', \'' + p.num + '\')">' +
+          '</div>' +
+          '<div class="text-center w-full mt-1.5 px-1">' +
+          '<div class="' + (isLarge ? 'text-sm' : 'text-[11px]') + ' font-black text-white truncate leading-tight">' + p.name + '</div>' +
+          '<div class="text-[9px] text-amber-300 font-bold">' + p.thTitle + '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div class="bg-gradient-to-r from-amber-950 to-stone-900 rounded p-1 border border-amber-500/80 shrink-0 text-center">' +
+          '<div class="text-[8px] text-amber-300 font-bold">🏆 部門トップ獲得</div>' +
+          '<div class="font-num text-sm text-white font-black leading-tight">' + p.thStat + '</div>' +
+          '</div>';
+      }
+
+      return newBadgeHTML +
+        '<div class="flex items-center justify-between shrink-0">' +
+        '<div class="flex items-center gap-1"><span class="bg-stone-800 text-white font-black text-[9px] px-1 rounded">' + p.team + '</span><span class="font-black text-[10px] text-amber-300 font-num">' + p.rarity + '</span></div>' +
+        '<span class="font-num text-base font-black text-stone-200">#' + p.num + '</span>' +
+        '</div>' +
+        '<div class="flex flex-col items-center justify-center my-auto shrink-0">' +
+        '<div class="' + sizeClass + ' rounded-full overflow-hidden bg-stone-800 border border-stone-600 shadow-md flex items-center justify-center">' +
+        '<img src="' + headshot + '" alt="' + p.name + '" class="w-full h-full object-cover object-top" onerror="handleImageError(this, \'' + p.team + '\', \'' + p.num + '\')">' +
+        '</div>' +
+        '<div class="text-center w-full mt-1.5 px-1">' +
+        '<div class="' + (isLarge ? 'text-sm' : 'text-[11px]') + ' font-black text-white truncate leading-tight">' + p.name + '</div>' +
+        '<div class="text-[9px] text-stone-400 font-medium">' + p.pos + ' / ' + p.type + '</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="bg-black/60 rounded p-1 border border-stone-800/80 shrink-0">' +
+        '<div class="text-[9px] text-stone-300 line-clamp-2 leading-tight overflow-hidden">' + p.stats + '</div>' +
+        '</div>';
+    }
+
+    function openSummaryModal() {
+      var container = document.getElementById('summary-grid');
+      container.innerHTML = '';
+      currentResults.forEach(function(r) {
+        var p = r.player;
+        var div = document.createElement('div');
+        div.className = 'p-2 rounded-xl border-' + p.rarity + ' flex flex-col justify-between h-44 cursor-pointer active:scale-95 transition shadow relative';
+        div.innerHTML = generateCardFrontHTML(p, false, r.isNew);
+        div.onclick = function() { showPlayerDetail(p); };
+        container.appendChild(div);
+      });
+      var modal = document.getElementById('summary-modal');
+      modal.classList.remove('modal-hidden');
+      modal.classList.add('modal-visible');
+    }
+
+    function closeSummaryModal() {
+      var modal = document.getElementById('summary-modal');
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+    }
+
+    var zukanFilter = 'ALL';
+    function setZukanFilter(f) {
+      zukanFilter = f;
+      document.querySelectorAll('.zukan-filter-btn').forEach(function(btn) {
+        if (btn.dataset.f === f) {
+          btn.className = 'zukan-filter-btn px-2.5 py-1 rounded bg-amber-500 text-stone-950 font-bold';
+        } else {
+          btn.className = 'zukan-filter-btn px-2.5 py-1 rounded bg-stone-800 text-stone-300';
+        }
+      });
+      renderZukan();
+    }
+
+    function renderZukan() {
+      var container = document.getElementById('zukan-grid');
+      container.innerHTML = '';
+
+      var list = PLAYERS.filter(function(p) {
+        if (zukanFilter === 'ALL') return true;
+        if (zukanFilter === 'JAPAN') return p.rarity === 'JAPAN';
+        if (zukanFilter === 'ANNIV') return p.rarity === 'ANNIV';
+        if (zukanFilter === 'TH') return p.rarity === 'TH';
+        if (['LAD', 'NYY', 'SD', 'SF'].indexOf(zukanFilter) !== -1) return p.team === zukanFilter;
+        if (zukanFilter === 'OWNED') return (ownedMap[p.id] || 0) > 0;
+        return true;
+      });
+
+      list.forEach(function(p) {
+        var count = ownedMap[p.id] || 0;
+        var card = document.createElement('div');
+
+        if (count > 0) {
+          card.className = 'p-2 rounded-xl border-' + p.rarity + ' h-40 flex flex-col justify-between cursor-pointer hover:brightness-110 shadow transition relative pointer-events-auto';
+          card.innerHTML = generateCardFrontHTML(p, false, false);
+          card.addEventListener('click', function() { showPlayerDetail(p); });
+        } else {
+          card.className = 'p-2 rounded-xl border border-dashed border-stone-800 bg-stone-900/40 h-40 flex flex-col items-center justify-center text-center opacity-60';
+          card.innerHTML = '<div class="text-[10px] text-stone-600 font-num">#' + p.num + '</div>' +
+            '<div class="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center my-1.5 text-stone-600 font-bold text-sm">?</div>' +
+            '<div class="text-[10px] text-stone-500 font-bold truncate w-full px-1">' + p.name + '</div>' +
+            '<div class="text-[9px] text-stone-600">' + p.team + '</div>';
+        }
+        container.appendChild(card);
+      });
+    }
+
+    function showPlayerDetail(p) {
+      var modal = document.getElementById('detail-modal');
+      var slot = document.getElementById('detail-card-slot');
+      var stats = document.getElementById('detail-stats');
+
+      var holoClass = (p.rarity === 'JAPAN') ? 'holo-JAPAN' : ((p.rarity === 'ANNIV') ? 'holo-ANNIV' : ((p.rarity === 'TH') ? 'holo-TH' : ((p.rarity === 'UR') ? 'holo-UR' : '')));
+      slot.className = 'w-44 h-60 mx-auto rounded-xl border-' + p.rarity + ' ' + holoClass + ' p-2.5 flex flex-col justify-between relative';
+      slot.innerHTML = generateCardFrontHTML(p, true, false);
+
+      var count = ownedMap[p.id] || 0;
+      stats.innerHTML = '<div class="flex justify-between border-b border-stone-800 pb-1">' +
+        '<span class="text-stone-400">所属/球団:</span><span class="font-bold text-white">' + p.team + '</span>' +
+        '</div>' +
+        '<div class="flex justify-between border-b border-stone-800 pb-1">' +
+        '<span class="text-stone-400">能力値 (総合力):</span><span class="font-bold text-amber-400 font-num text-sm">' + getCardPower(p) + ' PT</span>' +
+        '</div>' +
+        '<div class="flex justify-between border-b border-stone-800 pb-1">' +
+        '<span class="text-stone-400">所持数:</span><span class="font-bold text-amber-400">' + count + ' 枚</span>' +
+        '</div>' +
+        '<div class="pt-1">' +
+        '<div class="text-stone-400 text-[10px]">詳細データ:</div><div class="text-stone-200 mt-0.5 leading-tight">' + p.stats + '</div>' +
+        (p.rarity === 'JAPAN' ? '<div class="text-rose-400 text-[10px] mt-1 font-bold">🇯🇵 ' + p.jpTitle + ' (イベント+1ボーナス)</div>' : '') +
+        (p.rarity === 'TH' ? '<div class="text-amber-400 text-[10px] mt-1 font-bold">🏆 ' + p.thTitle + ': ' + p.thStat + ' (イベント+1ボーナス)</div>' : '') +
+        (p.rarity === 'ANNIV' ? '<div class="text-cyan-400 text-[10px] mt-1 font-bold">✨ ' + p.annivTitle + ' (イベント+1ボーナス)</div>' : '') +
+        '</div>';
+
+      modal.classList.remove('modal-hidden');
+      modal.classList.add('modal-visible');
+    }
+
+    function closeDetailModal() {
+      var modal = document.getElementById('detail-modal');
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+    }
+
+    function openProbModal() {
+      var modal = document.getElementById('prob-modal');
+      var title = document.getElementById('prob-modal-title');
+      var content = document.getElementById('prob-modal-content');
+      var sub = document.getElementById('prob-modal-sub');
+
+      if (currentScoutMode === 'JAPAN') {
+        title.innerText = 'メジャー挑戦選手スカウト 提供割合';
+        content.innerHTML = '<div class="flex justify-between"><span class="text-rose-400 font-bold">JAPAN (挑戦者)</span><span class="font-num text-sm text-rose-300">2.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-pink-400 font-bold">UR (超激レア)</span><span class="font-num text-sm text-pink-300">1.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-amber-400 font-bold">SSR (極レア)</span><span class="font-num text-sm text-amber-300">5.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-purple-400 font-bold">SR (主力)</span><span class="font-num text-sm text-purple-300">18.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-sky-400 font-bold">R (レギュラー)</span><span class="font-num text-sm text-sky-300">35.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-stone-400 font-bold">N (ノーマル)</span><span class="font-num text-sm text-stone-300">37.5%</span></div>';
+        sub.innerText = '※30連ごとに今季メジャー挑戦選手が確定。10連の10枚目はSR以上確定です。';
+      } else if (currentScoutMode === 'ANNIV') {
+        title.innerText = 'アニバーサリースカウト 提供割合';
+        content.innerHTML = '<div class="flex justify-between"><span class="text-cyan-400 font-bold">ANNIV (サイン入り)</span><span class="font-num text-sm text-cyan-300">2.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-pink-400 font-bold">UR (超激レア)</span><span class="font-num text-sm text-pink-300">1.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-amber-400 font-bold">SSR (極レア)</span><span class="font-num text-sm text-amber-300">5.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-purple-400 font-bold">SR (主力)</span><span class="font-num text-sm text-purple-300">18.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-sky-400 font-bold">R (レギュラー)</span><span class="font-num text-sm text-sky-300">35.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-stone-400 font-bold">N (ノーマル)</span><span class="font-num text-sm text-stone-300">38.0%</span></div>';
+        sub.innerText = '※30連ごとにアニバーサリー選手が確定。10連の10枚目はSR以上確定です。';
+      } else if (currentScoutMode === 'TH') {
+        title.innerText = 'タイトルホルダー限定 スカウト割合';
+        var thRate = (thPityCounter >= 60) ? '1.5%' : '1.0%';
+        content.innerHTML = '<div class="flex justify-between"><span class="text-amber-400 font-bold">TH (タイトルホルダー)</span><span class="font-num text-sm text-amber-300">' + thRate + '</span></div>' +
+          '<div class="flex justify-between"><span class="text-pink-400 font-bold">UR (超激レア)</span><span class="font-num text-sm text-pink-300">1.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-amber-400 font-bold">SSR (極レア)</span><span class="font-num text-sm text-amber-300">5.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-purple-400 font-bold">SR (主力)</span><span class="font-num text-sm text-purple-300">18.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-sky-400 font-bold">R (レギュラー)</span><span class="font-num text-sm text-sky-300">35.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-stone-400 font-bold">N (ノーマル)</span><span class="font-num text-sm text-stone-300">39.0%</span></div>';
+        sub.innerText = '※30連・60連で確定。60連以降は1.5%で排出されます。';
+      } else {
+        title.innerText = '通常セレクション スカウト割合';
+        content.innerHTML = '<div class="flex justify-between"><span class="text-pink-400 font-bold">UR (超激レア)</span><span class="font-num text-sm text-pink-300">1.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-amber-400 font-bold">SSR (極レア)</span><span class="font-num text-sm text-amber-300">5.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-purple-400 font-bold">SR (主力)</span><span class="font-num text-sm text-purple-300">18.5%</span></div>' +
+          '<div class="flex justify-between"><span class="text-sky-400 font-bold">R (レギュラー)</span><span class="font-num text-sm text-sky-300">35.0%</span></div>' +
+          '<div class="flex justify-between"><span class="text-stone-400 font-bold">N (ノーマル)</span><span class="font-num text-sm text-stone-300">40.0%</span></div>';
+        sub.innerText = '※10連スカウトの10枚目はSR以上確定です。';
+      }
+      modal.classList.remove('modal-hidden');
+      modal.classList.add('modal-visible');
+    }
+
+    function closeProbModal() {
+      var modal = document.getElementById('prob-modal');
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+    }
+
+    function openShopModal() {
+      var modal = document.getElementById('shop-modal');
+      modal.classList.remove('modal-hidden');
+      modal.classList.add('modal-visible');
+    }
+    function closeShopModal() {
+      var modal = document.getElementById('shop-modal');
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+    }
+
+    function simulatePurchase(amount, price) {
+      if (confirm('【模擬決済】\n⚡ エナジー ' + amount.toLocaleString() + '個\n金額: ' + price + '\n\n※無料です。チャージしますか？')) {
+        userEnergy += amount;
+        saveState();
+        closeShopModal();
+        alert('⚡ エナジー ' + amount.toLocaleString() + '個 を獲得しました！');
+      }
+    }
+
+    // クイズ用ロジック
+    function getValidQuizPool() {
+      return PLAYERS.filter(function(p) {
+        return p.mlbId && p.mlbId.length > 3 && (p.rarity === 'UR' || p.rarity === 'SSR' || p.rarity === 'ANNIV' || p.rarity === 'TH');
+      });
+    }
+
+    function nextQuizQuestion() {
+      var pool = getValidQuizPool();
+      if (pool.length < 3) return;
+
+      var correctPlayer = pool[Math.floor(Math.random() * pool.length)];
+      currentQuizAnswer = correctPlayer;
+
+      var wrongOptions = [];
+      while (wrongOptions.length < 2) {
+        var candidate = pool[Math.floor(Math.random() * pool.length)];
+        if (candidate.id !== correctPlayer.id && wrongOptions.indexOf(candidate.name) === -1 && candidate.name !== correctPlayer.name) {
+          wrongOptions.push(candidate.name);
+        }
+      }
+
+      var choices = [correctPlayer.name, wrongOptions[0], wrongOptions[1]];
+      choices.sort(function() { return 0.5 - Math.random(); });
+
+      var qImg = document.getElementById('quiz-player-img');
+      qImg.src = 'https://midfield.mlbstatic.com/v1/people/' + correctPlayer.mlbId + '/spots/300';
+      document.getElementById('quiz-team-badge').innerText = correctPlayer.team + ' #' + correctPlayer.num;
+      document.getElementById('quiz-feedback').innerHTML = '';
+
+      var optContainer = document.getElementById('quiz-options-container');
+      optContainer.innerHTML = '';
+      choices.forEach(function(choiceName) {
+        var btn = document.createElement('button');
+        btn.className = 'w-full py-2.5 px-3 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-xl font-bold text-xs text-white text-center transition active:scale-95';
+        btn.innerText = choiceName;
+        btn.onclick = function() { checkQuizAnswer(choiceName); };
+        optContainer.appendChild(btn);
+      });
+    }
+
+    var quizStreak = 0;
+    var quizTotalCorrect = 0;
+    var currentQuizAnswer = null;
+
+    function checkQuizAnswer(selectedName) {
+      var feedback = document.getElementById('quiz-feedback');
+      var optContainer = document.getElementById('quiz-options-container');
+      Array.from(optContainer.children).forEach(function(b) { b.disabled = true; });
+
+      if (selectedName === currentQuizAnswer.name) {
+        quizStreak++;
+        quizTotalCorrect++;
+        var earned = 25;
+        var bonusText = '';
+
+        if (quizStreak % 3 === 0) {
+          earned += 50;
+          bonusText = ' ＋ 3連続正解ボーナス⚡50個！';
+        }
+
+        userEnergy += earned;
+        saveState();
+        feedback.innerHTML = '<span class="text-emerald-400">🎉 正解！ ' + currentQuizAnswer.name + '！ (⚡+' + earned + '個GET!' + bonusText + ')</span>';
+      } else {
+        quizStreak = 0;
+        saveState();
+        feedback.innerHTML = '<span class="text-rose-400">❌ 残念！ 正解は「' + currentQuizAnswer.name + '」でした。</span>';
+      }
+
+      document.getElementById('quiz-streak').innerText = quizStreak;
+      document.getElementById('quiz-total').innerText = quizTotalCorrect;
+
+      setTimeout(function() { nextQuizQuestion(); }, 1600);
+    }
+
+    function resetDataPrompt() {
+      if (confirm('エナジー・所持選手・オーダー・ランキング全データを初期化しますか？')) {
+        try {
+          localStorage.clear();
+        } catch(e) {}
+        userEnergy = 1000;
+        ownedMap = {};
+        thPityCounter = 0;
+        annivPityCounter = 0;
+        japanPityCounter = 0;
+        userProfile = { name: 'ルーキー監督', avatarId: 'lad_01', rp: 0 };
+        userOrder = Array(12).fill(null);
+        saveState();
+        renderZukan();
+        alert('全データをリセットしました。');
+      }
+    }
+
+    function switchTab(tab) {
+      var vScout = document.getElementById('view-scout');
+      var vZukan = document.getElementById('view-zukan');
+      var vBattle = document.getElementById('view-battle');
+      var vQuiz = document.getElementById('view-quiz');
+
+      var fScout = document.getElementById('footer-btn-scout');
+      var fZukan = document.getElementById('footer-btn-zukan');
+      var fBattle = document.getElementById('footer-btn-battle');
+      var fQuiz = document.getElementById('footer-btn-quiz');
+
+      vScout.classList.add('hidden');
+      vZukan.classList.add('hidden');
+      vBattle.classList.add('hidden');
+      vQuiz.classList.add('hidden');
+
+      fScout.className = 'flex flex-col items-center gap-0.5 hover:text-white text-stone-400';
+      fZukan.className = 'flex flex-col items-center gap-0.5 hover:text-white text-stone-400';
+      fBattle.className = 'flex flex-col items-center gap-0.5 hover:text-white text-stone-400';
+      fQuiz.className = 'flex flex-col items-center gap-0.5 hover:text-white text-stone-400';
+
+      if (tab === 'scout') {
+        vScout.classList.remove('hidden');
+        fScout.className = 'flex flex-col items-center gap-0.5 text-amber-400 font-bold';
+      } else if (tab === 'zukan') {
+        vZukan.classList.remove('hidden');
+        fZukan.className = 'flex flex-col items-center gap-0.5 text-amber-400 font-bold';
+        renderZukan();
+      } else if (tab === 'battle') {
+        vBattle.classList.remove('hidden');
+        fBattle.className = 'flex flex-col items-center gap-0.5 text-amber-400 font-bold';
+        checkUserProfileSetup();
+        renderOrderUI();
+        renderLeaderboardUI();
+      } else if (tab === 'quiz') {
+        vQuiz.classList.remove('hidden');
+        fQuiz.className = 'flex flex-col items-center gap-0.5 text-cyan-400 font-bold';
+        document.getElementById('quiz-streak').innerText = quizStreak;
+        document.getElementById('quiz-total').innerText = quizTotalCorrect;
+        nextQuizQuestion();
+      }
+    }
+
+    // 初期化実行
+    saveState();
+    renderBannerHero(HEROES_NORMAL[0]);
+    startBannerInterval();
+  </script>
+</body>
+</html>
