@@ -1,0 +1,2 @@
+# major-spirits
+ガチャするだけ
